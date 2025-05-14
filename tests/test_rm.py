@@ -1,13 +1,14 @@
 import os
-import tempfile
 import shutil
+import tempfile
+from unittest.mock import Mock
+
 from sphinx_cmd.commands.rm import (
-    find_rst_files,
-    extract_assets,
     build_asset_index,
     execute,
+    extract_assets,
+    find_rst_files,
 )
-from unittest.mock import Mock
 
 
 def test_rm_command():

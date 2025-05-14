@@ -3,9 +3,9 @@
 Command-line tool to delete unused .rst files and their unique assets.
 """
 
+import argparse
 import os
 import re
-import argparse
 from collections import defaultdict
 
 # Regex patterns for reStructuredText directives

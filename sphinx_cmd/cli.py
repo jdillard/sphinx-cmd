@@ -5,6 +5,7 @@ Main CLI entry point for sphinx-cmd with subcommands.
 
 import argparse
 import sys
+
 from sphinx_cmd.commands import rm
 
 
