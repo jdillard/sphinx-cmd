@@ -1,8 +1,10 @@
-import pytest
 import sys
 from io import StringIO
 from unittest.mock import patch
-from sphinx_cmd.cli import main, create_parser
+
+import pytest
+
+from sphinx_cmd.cli import create_parser, main
 
 
 def test_cli_help():

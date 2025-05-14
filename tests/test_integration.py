@@ -1,6 +1,6 @@
+import os
 import subprocess
 import tempfile
-import os
 
 
 def test_integration_rm_command():
