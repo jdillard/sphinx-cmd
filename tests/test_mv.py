@@ -1,14 +1,15 @@
 import os
 import tempfile
 from pathlib import Path
-from sphinx_cmd.commands.mv import (
-    find_all_rst_files,
-    extract_references,
-    find_files_referencing,
-    update_references_in_file,
-    move_rst_file,
-)
 from unittest.mock import Mock
+
+from sphinx_cmd.commands.mv import (
+    extract_references,
+    find_all_rst_files,
+    find_files_referencing,
+    move_rst_file,
+    update_references_in_file,
+)
 
 
 def test_find_rst_files():

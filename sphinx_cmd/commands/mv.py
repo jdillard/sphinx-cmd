@@ -3,13 +3,13 @@
 Command to move/rename .rst files and update all references.
 """
 
+import argparse
 import os
 import re
 import shutil
-import argparse
-from pathlib import Path
-from typing import List, Dict, Set, Tuple
 from collections import defaultdict
+from pathlib import Path
+from typing import Dict, List, Set, Tuple
 
 # Regex patterns for different types of references in reStructuredText
 REFERENCE_PATTERNS = {
