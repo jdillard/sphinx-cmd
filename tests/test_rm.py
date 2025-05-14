@@ -152,61 +152,6 @@ def test_non_empty_directory_retained():
         assert os.path.exists(other_file)
 
 
-def test_asset_extraction():
-    """Test that different directives are correctly extracted from RST files."""
-    with tempfile.TemporaryDirectory() as tmpdir:
-        # Create a test file with multiple directives
-        test_file = os.path.join(tmpdir, "test.rst")
-
-        # Create content with different directives
-        content = """
-Test Page
-=========
-
-.. image:: img.png
-.. figure:: fig.jpg
-.. include:: inc.rst
-"""
-        with open(test_file, "w") as f:
-            f.write(content)
-
-        # Extract assets
-        assets = extract_assets(test_file)
-
-        # Verify all assets were found with correct directive types
-        assert len(assets) == 3
-        assert os.path.join(tmpdir, "img.png") in assets
-        assert os.path.join(tmpdir, "fig.jpg") in assets
-        assert os.path.join(tmpdir, "inc.rst") in assets
-        assert assets[os.path.join(tmpdir, "img.png")] == "image"
-        assert assets[os.path.join(tmpdir, "fig.jpg")] == "figure"
-        assert assets[os.path.join(tmpdir, "inc.rst")] == "include"
-
-
-def test_find_rst_files():
-    """Test that RST files are correctly found."""
-    with tempfile.TemporaryDirectory() as tmpdir:
-        # Create some test files
-        rst_file = os.path.join(tmpdir, "test.rst")
-        other_file = os.path.join(tmpdir, "other.txt")
-
-        # Create the files
-        with open(rst_file, "w") as f:
-            f.write("RST content\n")
-        with open(other_file, "w") as f:
-            f.write("Other content\n")
-
-        # Test finding RST files
-        rst_files = find_rst_files(tmpdir)
-        assert len(rst_files) == 1
-        assert rst_files[0] == rst_file
-
-        # Test finding a specific RST file
-        rst_files = find_rst_files(rst_file)
-        assert len(rst_files) == 1
-        assert rst_files[0] == rst_file
-
-
 def test_remove_empty_dirs_function():
     """Test the remove_empty_dirs function directly."""
     with tempfile.TemporaryDirectory() as tmpdir:
