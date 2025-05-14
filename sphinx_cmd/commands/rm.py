@@ -6,6 +6,7 @@ Command to delete unused .rst files and their unique assets.
 import os
 import re
 from collections import defaultdict
+from pathlib import Path
 
 # Regex patterns for reStructuredText directives
 DIRECTIVE_PATTERNS = {
@@ -63,6 +64,7 @@ def delete_unused_assets_and_pages(
     """Delete files and their unique assets if not used elsewhere."""
     deleted_pages = []
     deleted_assets = []
+    affected_dirs = set()
 
     for rst_file, assets in file_to_assets.items():
         unused_assets = [a for a in assets if len(asset_to_files[a]) == 1]
@@ -73,25 +75,62 @@ def delete_unused_assets_and_pages(
                     if dry_run:
                         print(f"[dry-run] Would delete {directive}: {asset}")
                     else:
+                        affected_dirs.add(os.path.dirname(asset))
                         os.remove(asset)
                         deleted_assets.append(asset)
             if os.path.exists(rst_file):
                 if dry_run:
                     print(f"[dry-run] Would delete page: {rst_file}")
                 else:
+                    affected_dirs.add(os.path.dirname(rst_file))
                     os.remove(rst_file)
                     deleted_pages.append(rst_file)
 
-    return deleted_pages, deleted_assets
+    return deleted_pages, deleted_assets, affected_dirs
+
+
+def remove_empty_dirs(dirs, original_path, dry_run=False):
+    """Remove empty directories, bottom-up."""
+    deleted_dirs = []
+
+    # Sort by path depth (deepest first)
+    sorted_dirs = sorted(dirs, key=lambda d: d.count(os.sep), reverse=True)
+
+    for dir_path in sorted_dirs:
+        if not os.path.exists(dir_path) or not os.path.isdir(dir_path):
+            continue
+
+        # Check if directory is empty
+        if not os.listdir(dir_path):
+            if dry_run:
+                print(f"[dry-run] Would delete empty directory: {dir_path}")
+            else:
+                os.rmdir(dir_path)
+                deleted_dirs.append(dir_path)
+
+    # Check if the original path (if it's a directory) is now empty and should be removed
+    if os.path.isdir(original_path) and not os.listdir(original_path):
+        if dry_run:
+            print(f"[dry-run] Would delete empty directory: {original_path}")
+        else:
+            os.rmdir(original_path)
+            deleted_dirs.append(original_path)
+
+    return deleted_dirs
 
 
 def execute(args):
     """Execute the rm command."""
+    original_path = os.path.abspath(args.path)
     rst_files = find_rst_files(args.path)
     asset_to_files, file_to_assets, asset_directive_map = build_asset_index(rst_files)
-    deleted_pages, deleted_assets = delete_unused_assets_and_pages(
+    deleted_pages, deleted_assets, affected_dirs = delete_unused_assets_and_pages(
         asset_to_files, file_to_assets, asset_directive_map, args.dry_run
     )
+
+    deleted_dirs = []
+    if affected_dirs:
+        deleted_dirs = remove_empty_dirs(affected_dirs, original_path, args.dry_run)
 
     if not args.dry_run:
         print(f"\nDeleted {len(deleted_assets)} unused asset(s):")
@@ -102,3 +141,8 @@ def execute(args):
         print(f"\nDeleted {len(deleted_pages)} RST page(s):")
         for p in deleted_pages:
             print(f"  - {p}")
+
+        if deleted_dirs:
+            print(f"\nDeleted {len(deleted_dirs)} empty directory/directories:")
+            for d in deleted_dirs:
+                print(f"  - {d}")
