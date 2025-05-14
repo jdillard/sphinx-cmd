@@ -90,8 +90,15 @@ See :doc:`target` for details.
         all_files = [str(target), str(ref_file), str(other_file)]
         refs = find_files_referencing(str(target), all_files)
 
-        assert len(refs) == 1
-        assert str(ref_file) in [r[0] for r in refs]
+        # The function finds multiple types of references in the same file
+        # We expect 2 references: one from toctree and one from :doc:
+        assert len(refs) == 2
+        assert all(r[0] == str(ref_file) for r in refs)
+
+        # Check that we found both types of references
+        ref_types = {r[1] for r in refs}
+        assert "toctree" in ref_types
+        assert "reference" in ref_types
 
 
 def test_update_references():
