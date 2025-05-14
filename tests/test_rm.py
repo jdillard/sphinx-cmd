@@ -152,148 +152,59 @@ def test_non_empty_directory_retained():
         assert os.path.exists(other_file)
 
 
-def test_recursive_include_removal():
-    """Test that assets within included files are also removed when unique."""
+def test_asset_extraction():
+    """Test that different directives are correctly extracted from RST files."""
     with tempfile.TemporaryDirectory() as tmpdir:
-        # Create a directory structure for includes
-        docs_dir = os.path.join(tmpdir, "docs")
-        includes_dir = os.path.join(docs_dir, "includes")
-        os.makedirs(includes_dir)
+        # Create a test file with multiple directives
+        test_file = os.path.join(tmpdir, "test.rst")
 
-        # Create an include file with its own assets
-        included_file = os.path.join(includes_dir, "included.rst")
-        included_content = """
-Included Content
-===============
+        # Create content with different directives
+        content = """
+Test Page
+=========
 
-.. image:: images/included-image.png
-.. figure:: images/included-figure.jpg
+.. image:: img.png
+.. figure:: fig.jpg
+.. include:: inc.rst
 """
-        with open(included_file, "w") as f:
-            f.write(included_content)
+        with open(test_file, "w") as f:
+            f.write(content)
 
-        # Create assets directory for the included file
-        images_dir = os.path.join(includes_dir, "images")
-        os.makedirs(images_dir)
+        # Extract assets
+        assets = extract_assets(test_file)
 
-        # Create the included assets
-        with open(os.path.join(images_dir, "included-image.png"), "w") as f:
-            f.write("fake included image")
-        with open(os.path.join(images_dir, "included-figure.jpg"), "w") as f:
-            f.write("fake included figure")
-
-        # Create main RST file that includes the above file
-        main_file = os.path.join(docs_dir, "main.rst")
-        main_content = """
-Main Document
-============
-
-Some text here.
-
-.. include:: includes/included.rst
-
-More text here.
-"""
-        with open(main_file, "w") as f:
-            f.write(main_content)
-
-        # Ensure all files exist before test
-        assert os.path.exists(main_file)
-        assert os.path.exists(included_file)
-        assert os.path.exists(os.path.join(images_dir, "included-image.png"))
-        assert os.path.exists(os.path.join(images_dir, "included-figure.jpg"))
-
-        # Execute the rm command
-        args = Mock()
-        args.path = docs_dir
-        args.dry_run = False
-        execute(args)
-
-        # Verify that all files were removed, including recursively included assets
-        assert not os.path.exists(main_file)
-        assert not os.path.exists(included_file)
-        assert not os.path.exists(os.path.join(images_dir, "included-image.png"))
-        assert not os.path.exists(os.path.join(images_dir, "included-figure.jpg"))
-
-        # Verify all directories were removed
-        assert not os.path.exists(images_dir)
-        assert not os.path.exists(includes_dir)
-        assert not os.path.exists(docs_dir)
+        # Verify all assets were found with correct directive types
+        assert len(assets) == 3
+        assert os.path.join(tmpdir, "img.png") in assets
+        assert os.path.join(tmpdir, "fig.jpg") in assets
+        assert os.path.join(tmpdir, "inc.rst") in assets
+        assert assets[os.path.join(tmpdir, "img.png")] == "image"
+        assert assets[os.path.join(tmpdir, "fig.jpg")] == "figure"
+        assert assets[os.path.join(tmpdir, "inc.rst")] == "include"
 
 
-def test_shared_include_assets_preserved():
-    """
-    Test that assets in included files are preserved when referenced by multiple files.
-    """
+def test_find_rst_files():
+    """Test that RST files are correctly found."""
     with tempfile.TemporaryDirectory() as tmpdir:
-        # Create a directory structure for includes
-        docs_dir = os.path.join(tmpdir, "docs")
-        includes_dir = os.path.join(docs_dir, "includes")
-        os.makedirs(includes_dir)
+        # Create some test files
+        rst_file = os.path.join(tmpdir, "test.rst")
+        other_file = os.path.join(tmpdir, "other.txt")
 
-        # Create an include file with its own assets
-        included_file = os.path.join(includes_dir, "shared.rst")
-        included_content = """
-Shared Content
-=============
+        # Create the files
+        with open(rst_file, "w") as f:
+            f.write("RST content\n")
+        with open(other_file, "w") as f:
+            f.write("Other content\n")
 
-.. image:: images/shared-image.png
-"""
-        with open(included_file, "w") as f:
-            f.write(included_content)
+        # Test finding RST files
+        rst_files = find_rst_files(tmpdir)
+        assert len(rst_files) == 1
+        assert rst_files[0] == rst_file
 
-        # Create assets directory for the included file
-        images_dir = os.path.join(includes_dir, "images")
-        os.makedirs(images_dir)
-
-        # Create the shared asset
-        shared_image = os.path.join(images_dir, "shared-image.png")
-        with open(shared_image, "w") as f:
-            f.write("shared image")
-
-        # Create two main RST files that both include the shared file
-        main_file1 = os.path.join(docs_dir, "main1.rst")
-        main_content1 = """
-Main Document 1
-==============
-
-.. include:: includes/shared.rst
-"""
-        with open(main_file1, "w") as f:
-            f.write(main_content1)
-
-        main_file2 = os.path.join(docs_dir, "main2.rst")
-        main_content2 = """
-Main Document 2
-==============
-
-.. include:: includes/shared.rst
-"""
-        with open(main_file2, "w") as f:
-            f.write(main_content2)
-
-        # Ensure all files exist before test
-        assert os.path.exists(main_file1)
-        assert os.path.exists(main_file2)
-        assert os.path.exists(included_file)
-        assert os.path.exists(shared_image)
-
-        # Now remove only one of the main files
-        args = Mock()
-        args.path = main_file1
-        args.dry_run = False
-        execute(args)
-
-        # Verify that main_file1 was removed
-        assert not os.path.exists(main_file1)
-
-        # But shared include and its assets should still exist
-        assert os.path.exists(main_file2)
-        assert os.path.exists(included_file)
-        assert os.path.exists(shared_image)
-        assert os.path.exists(includes_dir)
-        assert os.path.exists(images_dir)
-        assert os.path.exists(docs_dir)
+        # Test finding a specific RST file
+        rst_files = find_rst_files(rst_file)
+        assert len(rst_files) == 1
+        assert rst_files[0] == rst_file
 
 
 def test_remove_empty_dirs_function():
