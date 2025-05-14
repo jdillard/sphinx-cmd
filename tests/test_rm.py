@@ -222,7 +222,9 @@ More text here.
 
 
 def test_shared_include_assets_preserved():
-    """Test that assets in included files are preserved when referenced by multiple files."""
+    """
+    Test that assets in included files are preserved when referenced by multiple files.
+    """
     with tempfile.TemporaryDirectory() as tmpdir:
         # Create a directory structure for includes
         docs_dir = os.path.join(tmpdir, "docs")

@@ -33,7 +33,8 @@ def extract_assets(file_path, processed_includes=None):
 
     Args:
         file_path: Path to the RST file
-        processed_includes: Set of already processed include files to prevent infinite recursion
+        processed_includes: Set of already processed include files to prevent
+            infinite recursion
 
     Returns:
         Dictionary mapping asset paths to their directive types
@@ -78,7 +79,7 @@ def extract_assets(file_path, processed_includes=None):
                     else:
                         # Store regular asset
                         asset_directives[asset_full_path] = directive
-    except (IOError, UnicodeDecodeError) as e:
+    except (IOError, UnicodeDecodeError):
         # Handle potential file reading errors silently
         pass
 
