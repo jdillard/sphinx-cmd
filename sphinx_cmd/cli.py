@@ -6,8 +6,6 @@ Main CLI entry point for sphinx-cmd with subcommands.
 import argparse
 import sys
 
-from sphinx_cmd.commands import rm
-
 
 def create_parser():
     """Create the main argument parser with subcommands."""
