@@ -93,9 +93,19 @@ def remove_empty_dirs(dirs, original_path, dry_run=False):
     """Remove empty directories, bottom-up."""
     deleted_dirs = []
 
-    # Sort by path depth (deepest first)
-    sorted_dirs = sorted(dirs, key=lambda d: d.count(os.sep), reverse=True)
+    # Add parent directories to the affected dirs set
+    all_dirs = set(dirs)
+    for dir_path in dirs:
+        # Add all parent directories up to but not including the original path
+        parent = os.path.dirname(dir_path)
+        while parent and os.path.exists(parent) and parent != original_path:
+            all_dirs.add(parent)
+            parent = os.path.dirname(parent)
 
+    # Sort by path depth (deepest first)
+    sorted_dirs = sorted(all_dirs, key=lambda d: d.count(os.sep), reverse=True)
+
+    # Process directories from deepest to shallowest
     for dir_path in sorted_dirs:
         if not os.path.exists(dir_path) or not os.path.isdir(dir_path):
             continue
