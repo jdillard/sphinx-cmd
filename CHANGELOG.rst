@@ -5,6 +5,7 @@ Changelog
 -----
 
 - Fix ``--version``
+- Remove directories when they are empty
 
 0.2.0
 -----
