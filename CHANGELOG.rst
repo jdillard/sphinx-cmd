@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.2.2
+-----
+
+- Recursively remove includes
+
 0.2.1
 -----
 

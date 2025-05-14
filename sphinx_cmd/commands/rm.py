@@ -27,18 +27,61 @@ def find_rst_files(path):
     return rst_files
 
 
-def extract_assets(file_path):
-    """Extract asset references from an .rst file."""
+def extract_assets(file_path, processed_includes=None):
+    """
+    Extract asset references from an .rst file, recursively processing includes.
+
+    Args:
+        file_path: Path to the RST file
+        processed_includes: Set of already processed include files to prevent infinite recursion
+
+    Returns:
+        Dictionary mapping asset paths to their directive types
+    """
+    if processed_includes is None:
+        processed_includes = set()
+
+    if not os.path.exists(file_path):
+        return {}
+
+    # Add current file to processed set to prevent circular includes
+    processed_includes.add(os.path.abspath(file_path))
+
     asset_directives = {}
-    with open(file_path, encoding="utf-8") as f:
-        content = f.read()
-        for directive, pattern in DIRECTIVE_PATTERNS.items():
-            for match in pattern.findall(content):
-                asset_path = match.strip()
-                asset_full_path = os.path.normpath(
-                    os.path.join(os.path.dirname(file_path), asset_path)
-                )
-                asset_directives[asset_full_path] = directive
+
+    try:
+        with open(file_path, encoding="utf-8") as f:
+            content = f.read()
+
+            # Process all directive types
+            for directive, pattern in DIRECTIVE_PATTERNS.items():
+                for match in pattern.findall(content):
+                    asset_path = match.strip()
+                    asset_full_path = os.path.normpath(
+                        os.path.join(os.path.dirname(file_path), asset_path)
+                    )
+
+                    # If this is an include directive, recursively process it
+                    if directive == "include" and os.path.exists(asset_full_path):
+                        abs_include_path = os.path.abspath(asset_full_path)
+                        # Only process if we haven't seen this include before
+                        if abs_include_path not in processed_includes:
+                            # Store the include file itself as an asset
+                            asset_directives[asset_full_path] = directive
+
+                            # Recursively process the included file
+                            included_assets = extract_assets(
+                                asset_full_path, processed_includes
+                            )
+                            # Add all assets from the included file
+                            asset_directives.update(included_assets)
+                    else:
+                        # Store regular asset
+                        asset_directives[asset_full_path] = directive
+    except (IOError, UnicodeDecodeError) as e:
+        # Handle potential file reading errors silently
+        pass
+
     return asset_directives
 
 
