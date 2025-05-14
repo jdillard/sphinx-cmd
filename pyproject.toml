@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sphinx-cmd"
-version = "0.2.0"
+dynamic = ["version"]
 authors = [
     {name = "Jared Dillard", email = "jared.dillard@gmail.com"},
 ]
@@ -47,6 +47,9 @@ packages = ["sphinx_cmd", "sphinx_cmd.commands"]
 
 [tool.setuptools.package-data]
 sphinx_cmd = ["py.typed"]
+
+[tool.setuptools.dynamic]
+version = {attr = "sphinx_cmd.__version__"}
 
 [tool.black]
 line-length = 88

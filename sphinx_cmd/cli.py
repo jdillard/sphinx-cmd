@@ -6,6 +6,8 @@ Main CLI entry point for sphinx-cmd with subcommands.
 import argparse
 import sys
 
+from sphinx_cmd import __version__
+
 
 def create_parser():
     """Create the main argument parser with subcommands."""
@@ -15,7 +17,7 @@ def create_parser():
     )
 
     # Add version option
-    parser.add_argument("--version", action="version", version="%(prog)s 0.1.0")
+    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
 
     # Create subparsers for subcommands
     subparsers = parser.add_subparsers(
