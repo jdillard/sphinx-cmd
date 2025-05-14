@@ -1,5 +1,0 @@
-# Development dependencies
-pytest>=7.0.0
-black
-flake8
-mypy
