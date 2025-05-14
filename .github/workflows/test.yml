@@ -48,13 +48,13 @@ jobs:
         echo "Test" > test_docs/test.rst
         sphinx-cmd rm test_docs --dry-run
 
-    - name: Build package
-      run: |
-        pip install build
-        python -m build
+    # - name: Build package
+    #   run: |
+    #     pip install build
+    #     python -m build
 
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: dist-${{ matrix.python-version }}
-        path: dist/
+    # - name: Upload artifacts
+    #   uses: actions/upload-artifact@v3
+    #   with:
+    #     name: dist-${{ matrix.python-version }}
+    #     path: dist/
