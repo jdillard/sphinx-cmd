@@ -1,0 +1,86 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sphinx-cmd"
+version = "0.1.0"
+authors = [
+    {name = "Jared Dillard", email = "jared.dillard@gmail.com"},
+]
+description = "Command-line tools for Sphinx documentation management"
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = []
+
+[project.urls]
+"Homepage" = "https://github.com/jdillard/sphinx-cmd"
+"Bug Reports" = "https://github.com/jdillard/sphinx-cmd/issues"
+"Source" = "https://github.com/jdillard/sphinx-cmd"
+
+[project.scripts]
+sphinx-cmd = "sphinx_cmd.cli:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "black",
+    "flake8",
+    "mypy",
+    "isort",
+]
+test = [
+    "pytest>=7.0.0",
+]
+
+[tool.setuptools]
+packages = ["sphinx_cmd", "sphinx_cmd.commands"]
+
+[tool.setuptools.package-data]
+sphinx_cmd = ["py.typed"]
+
+[tool.black]
+line-length = 88
+target-version = ['py39', 'py310', 'py311', 'py312']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+
+[tool.mypy]
+python_version = "3.9"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "-v"
+filterwarnings = [
+    "error",
+    "ignore::UserWarning",
+    "ignore::DeprecationWarning",
+]

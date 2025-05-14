@@ -1,7 +1,14 @@
 import os
 import tempfile
-from sphinx_cmd.commands.rm import find_rst_files, extract_assets, build_asset_index, execute
 from unittest.mock import Mock
+
+from sphinx_cmd.commands.rm import (
+    build_asset_index,
+    execute,
+    extract_assets,
+    find_rst_files,
+)
+
 
 def test_rm_command_functionality():
     """Test the rm command functionality."""
@@ -38,7 +45,9 @@ Test Page
         assert len(assets) == 2
 
         # Test building asset index
-        asset_to_files, file_to_assets, asset_directive_map = build_asset_index(rst_files)
+        asset_to_files, file_to_assets, asset_directive_map = build_asset_index(
+            rst_files
+        )
         assert len(asset_to_files) == 2
         assert len(file_to_assets) == 1
 
