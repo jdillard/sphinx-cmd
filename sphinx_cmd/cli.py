@@ -5,7 +5,6 @@ Main CLI entry point for sphinx-cmd with subcommands.
 
 import argparse
 import sys
-from sphinx_cmd.commands import rm
 
 def create_parser():
     """Create the main argument parser with subcommands."""
@@ -13,21 +12,21 @@ def create_parser():
         prog='sphinx-cmd',
         description='Command-line tools for Sphinx documentation management'
     )
-    
+
     # Add version option
     parser.add_argument(
         '--version',
         action='version',
         version='%(prog)s 0.1.0'
     )
-    
+
     # Create subparsers for subcommands
     subparsers = parser.add_subparsers(
         dest='command',
         help='Available commands',
         metavar='COMMAND'
     )
-    
+
     # Add 'rm' subcommand
     rm_parser = subparsers.add_parser(
         'rm',
@@ -42,23 +41,46 @@ def create_parser():
         action='store_true',
         help='Preview deletions without removing files'
     )
-    rm_parser.set_defaults(func=rm.execute)
-    
+    rm_parser.set_defaults(command_name='rm')
+
+    # Add 'mv' subcommand (placeholder for future implementation)
+    mv_parser = subparsers.add_parser(
+        'mv',
+        help='Move/rename .rst files and update references (not yet implemented)'
+    )
+    mv_parser.add_argument(
+        'source',
+        help='Source file or directory to move'
+    )
+    mv_parser.add_argument(
+        'destination',
+        help='Destination file or directory'
+    )
+    mv_parser.set_defaults(command_name='mv')
+
     return parser
 
 def main():
     """Main entry point for the CLI."""
     parser = create_parser()
     args = parser.parse_args()
-    
+
     # If no command is provided, show help
-    if not hasattr(args, 'func'):
+    if not hasattr(args, 'command_name'):
         parser.print_help()
         sys.exit(1)
-    
-    # Execute the appropriate command
+
+    # Import and execute the appropriate command
     try:
-        args.func(args)
+        if args.command_name == 'rm':
+            from sphinx_cmd.commands.rm import execute
+            execute(args)
+        elif args.command_name == 'mv':
+            from sphinx_cmd.commands.mv import execute
+            execute(args)
+        else:
+            print(f"Unknown command: {args.command_name}", file=sys.stderr)
+            sys.exit(1)
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
