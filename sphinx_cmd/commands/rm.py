@@ -27,18 +27,44 @@ def find_rst_files(path):
     return rst_files
 
 
-def extract_assets(file_path):
-    """Extract asset references from an .rst file."""
+def extract_assets(file_path, visited=None):
+    """Extract asset references from an .rst file, recursively parsing includes."""
+    if visited is None:
+        visited = set()
+
+    # Avoid circular includes
+    abs_path = os.path.abspath(file_path)
+    if abs_path in visited:
+        return {}
+    visited.add(abs_path)
+
     asset_directives = {}
-    with open(file_path, encoding="utf-8") as f:
-        content = f.read()
-        for directive, pattern in DIRECTIVE_PATTERNS.items():
-            for match in pattern.findall(content):
-                asset_path = match.strip()
-                asset_full_path = os.path.normpath(
-                    os.path.join(os.path.dirname(file_path), asset_path)
-                )
-                asset_directives[asset_full_path] = directive
+
+    # If file doesn't exist, skip it
+    if not os.path.exists(file_path):
+        return asset_directives
+
+    try:
+        with open(file_path, encoding="utf-8") as f:
+            content = f.read()
+            for directive, pattern in DIRECTIVE_PATTERNS.items():
+                for match in pattern.findall(content):
+                    asset_path = match.strip()
+                    asset_full_path = os.path.normpath(
+                        os.path.join(os.path.dirname(file_path), asset_path)
+                    )
+
+                    if directive == "include":
+                        # Recursively extract assets from included files
+                        included_assets = extract_assets(
+                            asset_full_path, visited.copy()
+                        )
+                        asset_directives.update(included_assets)
+
+                    asset_directives[asset_full_path] = directive
+    except Exception as e:
+        print(f"Warning: Could not read {file_path}: {e}")
+
     return asset_directives
 
 
@@ -57,6 +83,42 @@ def build_asset_index(rst_files):
     return asset_to_files, file_to_assets, asset_directive_map
 
 
+def get_transitive_includes(file_path, visited=None):
+    """Get all files included transitively from a file."""
+    if visited is None:
+        visited = set()
+
+    # Avoid circular includes
+    abs_path = os.path.abspath(file_path)
+    if abs_path in visited:
+        return set()
+    visited.add(abs_path)
+
+    includes = set()
+
+    if not os.path.exists(file_path):
+        return includes
+
+    try:
+        with open(file_path, encoding="utf-8") as f:
+            content = f.read()
+            pattern = DIRECTIVE_PATTERNS["include"]
+            for match in pattern.findall(content):
+                include_path = match.strip()
+                include_full_path = os.path.normpath(
+                    os.path.join(os.path.dirname(file_path), include_path)
+                )
+                includes.add(include_full_path)
+                # Recursively get includes from the included file
+                includes.update(
+                    get_transitive_includes(include_full_path, visited.copy())
+                )
+    except Exception as e:
+        print(f"Warning: Could not read {file_path}: {e}")
+
+    return includes
+
+
 def delete_unused_assets_and_pages(
     asset_to_files, file_to_assets, asset_directive_map, dry_run=False
 ):
@@ -65,18 +127,61 @@ def delete_unused_assets_and_pages(
     deleted_assets = []
     affected_dirs = set()
 
+    # Track which files have been processed to avoid duplicates
+    processed_files = set()
+
     for rst_file, assets in file_to_assets.items():
+        # Skip if already processed (can happen with transitive includes)
+        if rst_file in processed_files:
+            continue
+
         unused_assets = [a for a in assets if len(asset_to_files[a]) == 1]
         if len(unused_assets) == len(assets):  # All assets are unique to this file
-            for asset in unused_assets:
-                directive = asset_directive_map.get(asset, "asset")
-                if os.path.exists(asset):
+            # Get all files transitively included by this file
+            included_files = get_transitive_includes(rst_file)
+
+            # Process the main file and all its includes
+            for file_to_process in [rst_file] + list(included_files):
+                if (
+                    file_to_process in processed_files
+                    or file_to_process not in file_to_assets
+                ):
+                    continue
+
+                processed_files.add(file_to_process)
+                file_assets = file_to_assets.get(file_to_process, set())
+                file_unused_assets = [
+                    a for a in file_assets if len(asset_to_files[a]) == 1
+                ]
+
+                # Delete unused assets for this file
+                for asset in file_unused_assets:
+                    directive = asset_directive_map.get(asset, "asset")
+                    if os.path.exists(asset) and asset not in deleted_assets:
+                        if dry_run:
+                            origin = (
+                                " (from include)" if file_to_process != rst_file else ""
+                            )
+                            print(
+                                f"[dry-run] Would delete {directive}: {asset}{origin}"
+                            )
+                        else:
+                            affected_dirs.add(os.path.dirname(asset))
+                            os.remove(asset)
+                            deleted_assets.append(asset)
+
+                # Delete the file if it exists and isn't the main rst file being checked
+                if file_to_process != rst_file and os.path.exists(file_to_process):
                     if dry_run:
-                        print(f"[dry-run] Would delete {directive}: {asset}")
+                        print(
+                            f"[dry-run] Would delete included file: {file_to_process}"
+                        )
                     else:
-                        affected_dirs.add(os.path.dirname(asset))
-                        os.remove(asset)
-                        deleted_assets.append(asset)
+                        affected_dirs.add(os.path.dirname(file_to_process))
+                        os.remove(file_to_process)
+                        deleted_pages.append(file_to_process)
+
+            # Finally, delete the main rst file
             if os.path.exists(rst_file):
                 if dry_run:
                     print(f"[dry-run] Would delete page: {rst_file}")
