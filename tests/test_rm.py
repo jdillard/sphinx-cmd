@@ -10,7 +10,7 @@ from sphinx_cmd.commands.rm import (
 )
 
 
-def test_rm_command():
+def test_rm_command_functionality():
     """Test the rm command functionality."""
     # Create a temporary directory structure
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -61,9 +61,3 @@ Test Page
         assert os.path.exists(os.path.join(test_dir, "test.rst"))
         assert os.path.exists(os.path.join(test_dir, "image.png"))
         assert os.path.exists(os.path.join(test_dir, "figure.jpg"))
-
-        print("All tests passed!")
-
-
-if __name__ == "__main__":
-    test_rm_command()

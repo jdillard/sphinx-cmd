@@ -24,6 +24,32 @@ sphinx-cmd rm path/to/docs
 sphinx-cmd rm path/to/docs --dry-run
 ```
 
+### `sphinx-cmd mv`
+
+Move/rename .rst files and automatically update all references to them.
+
+```bash
+# Move and update all references
+sphinx-cmd mv old-file.rst new-file.rst
+
+# Move to a different directory
+sphinx-cmd mv chapter1.rst topics/chapter1.rst
+
+# Preview the move without making changes
+sphinx-cmd mv old-file.rst new-file.rst --dry-run
+
+# Move without updating references
+sphinx-cmd mv old-file.rst new-file.rst --no-update-refs
+```
+
+#### Features
+
+- Automatically updates `toctree` entries
+- Updates `:doc:` references
+- Updates `include` and `literalinclude` directives
+- Handles relative paths correctly
+- Preserves file relationships
+
 ## Development
 
 ```bash
@@ -45,6 +71,7 @@ mypy sphinx_cmd
 # Test the command
 sphinx-cmd --help
 sphinx-cmd rm --help
+sphinx-cmd mv --help
 ```
 
 ## Adding New Commands
