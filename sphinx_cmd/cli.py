@@ -37,12 +37,23 @@ def create_parser():
     )
     rm_parser.set_defaults(command_name="rm")
 
-    # Add 'mv' subcommand (placeholder for future implementation)
+    # Add 'mv' subcommand
     mv_parser = subparsers.add_parser(
-        "mv", help="Move/rename .rst files and update references (not yet implemented)"
+        "mv", help="Move/rename .rst files and update references"
     )
-    mv_parser.add_argument("source", help="Source file or directory to move")
+    mv_parser.add_argument("source", help="Source file to move")
     mv_parser.add_argument("destination", help="Destination file or directory")
+    mv_parser.add_argument(
+        "-n",
+        "--dry-run",
+        action="store_true",
+        help="Preview move without actually moving files",
+    )
+    mv_parser.add_argument(
+        "--no-update-refs",
+        action="store_true",
+        help="Do not update references to the moved file",
+    )
     mv_parser.set_defaults(command_name="mv")
 
     return parser
@@ -58,7 +69,7 @@ def main():
         parser.print_help()
         sys.exit(1)
 
-    # Execute the appropriate command
+    # Import and execute the appropriate command
     try:
         if args.command_name == "rm":
             from sphinx_cmd.commands.rm import execute
