@@ -37,22 +37,15 @@ def create_parser():
         action="store_true",
         help="Preview deletions without removing files",
     )
-    rm_parser.set_defaults(command_name='rm')
+    rm_parser.set_defaults(command_name="rm")
 
     # Add 'mv' subcommand (placeholder for future implementation)
     mv_parser = subparsers.add_parser(
-        'mv',
-        help='Move/rename .rst files and update references (not yet implemented)'
+        "mv", help="Move/rename .rst files and update references (not yet implemented)"
     )
-    mv_parser.add_argument(
-        'source',
-        help='Source file or directory to move'
-    )
-    mv_parser.add_argument(
-        'destination',
-        help='Destination file or directory'
-    )
-    mv_parser.set_defaults(command_name='mv')
+    mv_parser.add_argument("source", help="Source file or directory to move")
+    mv_parser.add_argument("destination", help="Destination file or directory")
+    mv_parser.set_defaults(command_name="mv")
 
     return parser
 
@@ -63,17 +56,19 @@ def main():
     args = parser.parse_args()
 
     # If no command is provided, show help
-    if not hasattr(args, 'command_name'):
+    if not hasattr(args, "command_name"):
         parser.print_help()
         sys.exit(1)
 
     # Execute the appropriate command
     try:
-        if args.command_name == 'rm':
+        if args.command_name == "rm":
             from sphinx_cmd.commands.rm import execute
+
             execute(args)
-        elif args.command_name == 'mv':
+        elif args.command_name == "mv":
             from sphinx_cmd.commands.mv import execute
+
             execute(args)
         else:
             print(f"Unknown command: {args.command_name}", file=sys.stderr)

@@ -2,6 +2,7 @@ import subprocess
 import tempfile
 import os
 
+
 def test_integration_rm_command():
     """Integration test for the rm command through the CLI."""
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -20,9 +21,7 @@ Test Page
 
         # Run the command with dry-run
         result = subprocess.run(
-            ["sphinx-cmd", "rm", tmpdir, "--dry-run"],
-            capture_output=True,
-            text=True
+            ["sphinx-cmd", "rm", tmpdir, "--dry-run"], capture_output=True, text=True
         )
 
         # Check that it executed successfully
@@ -33,13 +32,14 @@ Test Page
         assert os.path.exists(os.path.join(tmpdir, "test.rst"))
         assert os.path.exists(os.path.join(tmpdir, "test.png"))
 
+
 def test_integration_help_commands():
     """Test that all help commands work."""
     commands = [
         ["sphinx-cmd", "--help"],
         ["sphinx-cmd", "rm", "--help"],
         ["sphinx-cmd", "mv", "--help"],
-        ["sphinx-cmd", "--version"]
+        ["sphinx-cmd", "--version"],
     ]
 
     for cmd in commands:
