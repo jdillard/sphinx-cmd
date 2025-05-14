@@ -1,6 +1,6 @@
 import os
 import tempfile
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 from sphinx_cmd.commands.rm import (
     build_asset_index,

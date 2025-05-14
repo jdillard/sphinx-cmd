@@ -6,7 +6,6 @@ Command to delete unused .rst files and their unique assets.
 import os
 import re
 from collections import defaultdict
-from pathlib import Path
 
 # Regex patterns for reStructuredText directives
 DIRECTIVE_PATTERNS = {
@@ -118,7 +117,8 @@ def remove_empty_dirs(dirs, original_path, dry_run=False):
                 os.rmdir(dir_path)
                 deleted_dirs.append(dir_path)
 
-    # Check if the original path (if it's a directory) is now empty and should be removed
+    # Check if the original path (if it's a directory) is now empty and should
+    # be removed
     if os.path.isdir(original_path) and not os.listdir(original_path):
         if dry_run:
             print(f"[dry-run] Would delete empty directory: {original_path}")
