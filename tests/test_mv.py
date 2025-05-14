@@ -7,7 +7,6 @@ from sphinx_cmd.commands.mv import (
     extract_references,
     find_all_rst_files,
     find_files_referencing,
-    move_rst_file,
     update_references_in_file,
 )
 
