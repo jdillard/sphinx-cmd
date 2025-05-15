@@ -15,9 +15,7 @@ else:
     import tomli as tomllib
 
 # Default configuration with built-in directives
-DEFAULT_CONFIG = {
-    "directives": ["image", "figure", "include"]
-}
+DEFAULT_CONFIG = {"directives": ["image", "figure", "include"]}
 
 
 def get_config_path() -> Optional[Path]:
@@ -54,10 +52,13 @@ def load_config() -> Dict:
         if "directives" in user_config:
             if isinstance(user_config["directives"], list):
                 # If user config has list of directive names, extend default list
-                config["directives"].extend([
-                    name for name in user_config["directives"]
-                    if name not in config["directives"]
-                ])
+                config["directives"].extend(
+                    [
+                        name
+                        for name in user_config["directives"]
+                        if name not in config["directives"]
+                    ]
+                )
             elif isinstance(user_config["directives"], dict):
                 # Handle legacy format for backward compatibility
                 for name in user_config["directives"]:
@@ -82,7 +83,7 @@ def get_directive_patterns() -> Dict[str, re.Pattern]:
 
     for name in config["directives"]:
         # Generate regex pattern from directive name
-        pattern = fr"^\s*\.\.\s+{name}::\s+(.+)$"
+        pattern = rf"^\s*\.\.\s+{name}::\s+(.+)$"
         patterns[name] = re.compile(pattern, re.MULTILINE)
 
     return patterns
