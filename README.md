@@ -44,6 +44,7 @@ sphinx-cmd rm path/to/docs --directives drawio-figure,drawio-image
 #### Features
 
 - Configure custom directives to be processed
+- Only deletes unused unique assets in the provided context path
 
 ### `sphinx-cmd mv`
 
