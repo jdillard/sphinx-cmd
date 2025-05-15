@@ -102,6 +102,7 @@ Test Page
                 args.path = test_dir
                 args.dry_run = True
                 args.directives = None
+                args.context = None
 
                 # Run with dry-run to test detection
                 execute(args)
