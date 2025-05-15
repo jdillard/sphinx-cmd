@@ -253,7 +253,6 @@ def execute(args):
         # Get global options
         context_path = getattr(args, "context", None)
         dry_run = getattr(args, "dry_run", False)
-        directives = getattr(args, "directives", None)
 
         # Perform the move
         move_rst_file(
