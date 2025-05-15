@@ -11,14 +11,15 @@ def test_custom_directive_extraction():
     with tempfile.TemporaryDirectory() as tmpdir:
         # Create a test config with custom directives
         config_path = Path(tmpdir) / ".sphinx-cmd.toml"
-        with open(config_path, "wb") as f:
-            f.write(
-                b"""
+
+        # Create config with proper TOML syntax
+        toml_content = """
 [directives]
-drawio-figure = "^\\s*\\.\\.\\s+drawio-figure::\\s+(.+)$"
-drawio-image = "^\\s*\\.\\.\\s+drawio-image::\\s+(.+)$"
+drawio-figure = "^\\\\s*\\\\.\\\\.\\\\s+drawio-figure::\\\\s+(.+)$"
+drawio-image = "^\\\\s*\\\\.\\\\.\\\\s+drawio-image::\\\\s+(.+)$"
 """
-            )
+        with open(config_path, "wb") as f:
+            f.write(toml_content.encode())
 
         # Create a test file with custom directives
         test_file = os.path.join(tmpdir, "test.rst")
@@ -62,13 +63,14 @@ def test_rm_command_with_custom_directives():
     with tempfile.TemporaryDirectory() as tmpdir:
         # Create a test config with custom directives
         config_path = Path(tmpdir) / ".sphinx-cmd.toml"
-        with open(config_path, "wb") as f:
-            f.write(
-                b"""
+
+        # Create config with proper TOML syntax
+        toml_content = """
 [directives]
-drawio-figure = "^\\s*\\.\\.\\s+drawio-figure::\\s+(.+)$"
+drawio-figure = "^\\\\s*\\\\.\\\\.\\\\s+drawio-figure::\\\\s+(.+)$"
 """
-            )
+        with open(config_path, "wb") as f:
+            f.write(toml_content.encode())
 
         # Create test directory
         test_dir = os.path.join(tmpdir, "docs")
