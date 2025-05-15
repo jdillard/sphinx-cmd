@@ -131,9 +131,14 @@ def get_transitive_includes(
 
 
 def delete_unused_assets_and_pages(
-    asset_to_files, file_to_assets, asset_directive_map, dry_run=False
+    asset_to_files, file_to_assets, asset_directive_map, dry_run=False, context_path=None
 ):
-    """Delete files and their unique assets if not used elsewhere."""
+    """
+    Delete files and their unique assets if not used elsewhere.
+
+    If context_path is provided, only files within that context will be removed
+    for safety reasons.
+    """
     deleted_pages = []
     deleted_assets = []
     affected_dirs = set()
@@ -169,6 +174,19 @@ def delete_unused_assets_and_pages(
                 for asset in file_unused_assets:
                     directive = asset_directive_map.get(asset, "asset")
                     if os.path.exists(asset) and asset not in deleted_assets:
+                        # Check if asset is within context path if context is provided
+                        is_in_context = True
+                        if context_path:
+                            asset_abs_path = os.path.abspath(asset)
+                            context_abs_path = os.path.abspath(context_path)
+                            # Check if the asset path starts with the context path
+                            is_in_context = asset_abs_path.startswith(context_abs_path)
+
+                        if not is_in_context:
+                            if dry_run:
+                                print(f"[dry-run] Skipping {directive} (outside context): {asset}")
+                            continue
+
                         if dry_run:
                             origin = (
                                 " (from include)" if file_to_process != rst_file else ""
@@ -183,6 +201,19 @@ def delete_unused_assets_and_pages(
 
                 # Delete the file if it exists and isn't the main rst file being checked
                 if file_to_process != rst_file and os.path.exists(file_to_process):
+                    # Check if file is within context path if context is provided
+                    is_in_context = True
+                    if context_path:
+                        file_abs_path = os.path.abspath(file_to_process)
+                        context_abs_path = os.path.abspath(context_path)
+                        # Check if the file path starts with the context path
+                        is_in_context = file_abs_path.startswith(context_abs_path)
+
+                    if not is_in_context:
+                        if dry_run:
+                            print(f"[dry-run] Skipping included file (outside context): {file_to_process}")
+                        continue
+
                     if dry_run:
                         print(
                             f"[dry-run] Would delete included file: {file_to_process}"
@@ -194,6 +225,19 @@ def delete_unused_assets_and_pages(
 
             # Finally, delete the main rst file
             if os.path.exists(rst_file):
+                # Check if file is within context path if context is provided
+                is_in_context = True
+                if context_path:
+                    file_abs_path = os.path.abspath(rst_file)
+                    context_abs_path = os.path.abspath(context_path)
+                    # Check if the file path starts with the context path
+                    is_in_context = file_abs_path.startswith(context_abs_path)
+
+                if not is_in_context:
+                    if dry_run:
+                        print(f"[dry-run] Skipping page (outside context): {rst_file}")
+                    continue
+
                 if dry_run:
                     print(f"[dry-run] Would delete page: {rst_file}")
                 else:
@@ -256,7 +300,7 @@ def execute(args):
         rst_files, cli_directives=args.directives, context_path=context_path
     )
     deleted_pages, deleted_assets, affected_dirs = delete_unused_assets_and_pages(
-        asset_to_files, file_to_assets, asset_directive_map, args.dry_run
+        asset_to_files, file_to_assets, asset_directive_map, args.dry_run, context_path
     )
 
     deleted_dirs = []

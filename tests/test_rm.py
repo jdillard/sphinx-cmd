@@ -350,3 +350,76 @@ def test_remove_empty_dirs_function():
         assert len(deleted_dirs) == 2
         assert other_dir in deleted_dirs
         assert parent_dir in deleted_dirs
+
+
+def test_context_path_protection():
+    """Test that files outside the context path are identified in dry-run mode."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Create a docs directory that will serve as our context
+        docs_dir = os.path.join(tmpdir, "docs")
+        os.makedirs(docs_dir)
+
+        # Create another directory outside the context
+        outside_dir = os.path.join(tmpdir, "outside")
+        os.makedirs(outside_dir)
+
+        # Create a conf.py file in the docs directory to mark it as a Sphinx context
+        with open(os.path.join(docs_dir, "conf.py"), "w") as f:
+            f.write("# Sphinx configuration file")
+
+        # Create an RST file in the docs directory that references a file outside the context
+        rst_content = """
+Test Page
+=========
+
+.. image:: ../outside/image.png
+"""
+        rst_file = os.path.join(docs_dir, "test.rst")
+        with open(rst_file, "w") as f:
+            f.write(rst_content)
+
+        # Create the referenced asset in the outside directory
+        outside_img = os.path.join(outside_dir, "image.png")
+        with open(outside_img, "w") as f:
+            f.write("fake image")
+
+        # Execute the rm command with context_path set to docs_dir (DRY RUN ONLY)
+        args = Mock()
+        args.path = docs_dir
+        args.dry_run = True  # Only use dry run mode
+        args.directives = None
+        args.context = docs_dir
+
+        # Capture stdout to verify the messages
+        import sys
+        from io import StringIO
+
+        captured_output = StringIO()
+        original_stdout = sys.stdout
+        sys.stdout = captured_output
+
+        try:
+            # Execute in dry run mode
+            with patch("os.getcwd", return_value=tmpdir):
+                with patch("pathlib.Path.cwd", return_value=Path(tmpdir)):
+                    with patch("sphinx_cmd.config.get_config_path", return_value=None):
+                        execute(args)
+
+            # Get the captured output
+            output = captured_output.getvalue()
+
+            # Verify that it shows the outside file would be skipped
+            assert "Skipping" in output
+            assert "outside context" in output
+            assert outside_img in output
+
+            # Verify the RST file would be deleted (not skipped)
+            assert "Would delete page:" in output
+            assert rst_file in output
+
+            # Verify both files still exist after dry run
+            assert os.path.exists(rst_file)
+            assert os.path.exists(outside_img)
+
+        finally:
+            sys.stdout = original_stdout
