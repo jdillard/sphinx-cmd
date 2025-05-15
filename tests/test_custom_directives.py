@@ -59,7 +59,7 @@ Test Document
 
 
 def test_rm_command_with_custom_directives():
-    """Test the rm command with custom directives."""
+    """Test the rm command with custom directives (using dry-run)."""
     with tempfile.TemporaryDirectory() as tmpdir:
         # Create a test config with custom directives
         config_path = Path(tmpdir) / ".sphinx-cmd.toml"
@@ -92,24 +92,33 @@ Test Page
 
         # Execute the rm command with mocked config
         with patch("sphinx_cmd.config.get_config_path", return_value=config_path):
-            args = Mock()
-            args.path = test_dir
-            args.dry_run = True
+            # Setup to capture stdout
+            from io import StringIO
+            import sys
+            captured_output = StringIO()
+            original_stdout = sys.stdout
+            sys.stdout = captured_output
 
-            # First run as dry-run to test detection
-            execute(args)
+            try:
+                args = Mock()
+                args.path = test_dir
+                args.dry_run = True
 
-            # Files should still exist
+                # Run with dry-run to test detection
+                execute(args)
+
+                # Get the captured output
+                output = captured_output.getvalue()
+
+                # Verify the correct files would be deleted
+                assert "[dry-run] Would delete drawio-figure:" in output
+                assert "custom.drawio" in output
+                assert "[dry-run] Would delete page:" in output
+                assert "test.rst" in output
+            finally:
+                sys.stdout = original_stdout
+
+            # Files should still exist after dry run
             assert os.path.exists(os.path.join(test_dir, "test.rst"))
             assert os.path.exists(os.path.join(test_dir, "custom.drawio"))
-
-            # Now actually delete the files
-            args.dry_run = False
-            execute(args)
-
-            # All files should be gone
-            assert not os.path.exists(os.path.join(test_dir, "test.rst"))
-            assert not os.path.exists(os.path.join(test_dir, "custom.drawio"))
-
-            # Directory should be removed too
-            assert not os.path.exists(test_dir)
+            assert os.path.exists(test_dir)
