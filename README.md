@@ -23,8 +23,11 @@ Options that apply to all commands:
 # Specify a context path (directory containing conf.py)
 sphinx-cmd --context /path/to/docs COMMAND
 
-# Short form
-sphinx-cmd -c /path/to/docs COMMAND
+# Dry run to preview changes without executing them
+sphinx-cmd --dry-run COMMAND
+
+# Process additional directives beyond defaults
+sphinx-cmd --directives drawio-figure,drawio-image COMMAND
 ```
 
 By default, `sphinx-cmd` will automatically detect the context of your documentation project by finding the nearest `conf.py` file in the directory tree.
@@ -37,11 +40,8 @@ Delete unused .rst files and their unique assets (images, includes, etc) if not 
 # Remove files and assets
 sphinx-cmd rm path/to/docs
 
-# Dry run to preview deletions
-sphinx-cmd rm path/to/docs --dry-run
-
-# Process additional directives beyond defaults
-sphinx-cmd rm path/to/docs --directives drawio-figure,drawio-image
+# Using global options
+sphinx-cmd --dry-run --directives drawio-figure,drawio-image rm path/to/docs
 ```
 
 #### Features
@@ -60,14 +60,11 @@ sphinx-cmd mv old-file.rst new-file.rst
 # Move to a different directory
 sphinx-cmd mv chapter1.rst topics/chapter1.rst
 
-# Preview the move without making changes
-sphinx-cmd mv old-file.rst new-file.rst --dry-run
-
 # Move without updating references
 sphinx-cmd mv old-file.rst new-file.rst --no-update-refs
 
-# Process additional directives beyond defaults
-sphinx-cmd mv old-file.rst new-file.rst --directives drawio-figure,drawio-image
+# Using global options
+sphinx-cmd --dry-run --directives drawio-figure mv old-file.rst new-file.rst
 ```
 
 #### Features
@@ -85,10 +82,10 @@ You can add custom directives to be processed in two ways:
 
 ### 1. Command Line
 
-Use the `--directives` option with any command to add custom directives for a single run:
+Use the `--directives` global option with any command to add custom directives for a single run:
 
 ```bash
-sphinx-cmd rm path/to/docs --directives drawio-figure,drawio-image
+sphinx-cmd --directives drawio-figure,drawio-image rm path/to/docs
 ```
 
 ### 2. Configuration File
