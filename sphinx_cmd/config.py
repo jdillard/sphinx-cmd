@@ -50,20 +50,14 @@ def load_config() -> Dict:
 
         # Merge user directives with default directives
         if "directives" in user_config:
-            if isinstance(user_config["directives"], list):
-                # If user config has list of directive names, extend default list
-                config["directives"].extend(
-                    [
-                        name
-                        for name in user_config["directives"]
-                        if name not in config["directives"]
-                    ]
-                )
-            elif isinstance(user_config["directives"], dict):
-                # Handle legacy format for backward compatibility
-                for name in user_config["directives"]:
-                    if name not in config["directives"]:
-                        config["directives"].append(name)
+            # If user config has list of directive names, extend default list
+            config["directives"].extend(
+                [
+                    name
+                    for name in user_config["directives"]
+                    if name not in config["directives"]
+                ]
+            )
 
     except Exception as e:
         print(f"Warning: Error loading config from {config_path}: {e}")
