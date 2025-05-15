@@ -21,7 +21,7 @@ def find_rst_files(path):
     return rst_files
 
 
-def extract_assets(file_path, visited=None, cli_directives=None):
+def extract_assets(file_path, visited=None, cli_directives=None, context_path=None):
     """Extract asset references from an .rst file, recursively parsing includes."""
     if visited is None:
         visited = set()
@@ -33,7 +33,7 @@ def extract_assets(file_path, visited=None, cli_directives=None):
     visited.add(abs_path)
 
     asset_directives = {}
-    directive_patterns = get_directive_patterns(cli_directives)
+    directive_patterns = get_directive_patterns(cli_directives, context_path)
 
     # If file doesn't exist, skip it
     if not os.path.exists(file_path):
@@ -52,7 +52,7 @@ def extract_assets(file_path, visited=None, cli_directives=None):
                     if directive == "include":
                         # Recursively extract assets from included files
                         included_assets = extract_assets(
-                            asset_full_path, visited.copy()
+                            asset_full_path, visited.copy(), cli_directives, context_path
                         )
                         asset_directives.update(included_assets)
 
@@ -63,14 +63,14 @@ def extract_assets(file_path, visited=None, cli_directives=None):
     return asset_directives
 
 
-def build_asset_index(rst_files, cli_directives=None):
+def build_asset_index(rst_files, cli_directives=None, context_path=None):
     """Build an index of assets and which files reference them."""
     asset_to_files = defaultdict(set)
     file_to_assets = {}
     asset_directive_map = {}
 
     for rst in rst_files:
-        asset_directives = extract_assets(rst, cli_directives=cli_directives)
+        asset_directives = extract_assets(rst, cli_directives=cli_directives, context_path=context_path)
         file_to_assets[rst] = set(asset_directives.keys())
         for asset, directive in asset_directives.items():
             asset_to_files[asset].add(rst)
@@ -78,7 +78,7 @@ def build_asset_index(rst_files, cli_directives=None):
     return asset_to_files, file_to_assets, asset_directive_map
 
 
-def get_transitive_includes(file_path, visited=None, cli_directives=None):
+def get_transitive_includes(file_path, visited=None, cli_directives=None, context_path=None):
     """Get all files included transitively from a file."""
     if visited is None:
         visited = set()
@@ -94,7 +94,7 @@ def get_transitive_includes(file_path, visited=None, cli_directives=None):
     if not os.path.exists(file_path):
         return includes
 
-    directive_patterns = get_directive_patterns(cli_directives)
+    directive_patterns = get_directive_patterns(cli_directives, context_path)
 
     try:
         with open(file_path, encoding="utf-8") as f:
@@ -111,7 +111,7 @@ def get_transitive_includes(file_path, visited=None, cli_directives=None):
                     # Recursively get includes from the included file
                     includes.update(
                         get_transitive_includes(
-                            include_full_path, visited.copy(), cli_directives
+                            include_full_path, visited.copy(), cli_directives, context_path
                         )
                     )
     except Exception as e:
@@ -239,8 +239,11 @@ def execute(args):
     """Execute the rm command."""
     original_path = os.path.abspath(args.path)
     rst_files = find_rst_files(args.path)
+
+    # Pass context to build_asset_index
+    context_path = getattr(args, 'context', None)
     asset_to_files, file_to_assets, asset_directive_map = build_asset_index(
-        rst_files, cli_directives=args.directives
+        rst_files, cli_directives=args.directives, context_path=context_path
     )
     deleted_pages, deleted_assets, affected_dirs = delete_unused_assets_and_pages(
         asset_to_files, file_to_assets, asset_directive_map, args.dry_run

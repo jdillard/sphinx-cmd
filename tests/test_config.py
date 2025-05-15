@@ -1,8 +1,8 @@
-import tempfile
+simport tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-from sphinx_cmd.config import get_directive_patterns, load_config
+from sphinx_cmd.config import get_directive_patterns, load_config, find_sphinx_conf, get_sphinx_context
 
 
 def test_default_config():
@@ -107,3 +107,85 @@ directives = ["drawio-figure"]
             match = patterns["custom-directive"].findall(test_string)
             assert len(match) == 1
             assert match[0] == "path/to/custom.file"
+
+
+def test_find_sphinx_conf():
+    """Test finding the nearest conf.py file."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp_path = Path(tmpdir)
+
+        # Create a deep directory structure with conf.py at different levels
+        docs_dir = tmp_path / "docs"
+        docs_dir.mkdir()
+
+        # Create a conf.py file in the docs directory
+        docs_conf = docs_dir / "conf.py"
+        docs_conf.touch()
+
+        # Create subdirectories
+        subdir = docs_dir / "subdir"
+        subdir.mkdir()
+        subsubdir = subdir / "subsubdir"
+        subsubdir.mkdir()
+
+        # Test finding conf.py from docs directory
+        found_conf = find_sphinx_conf(docs_dir)
+        assert found_conf == docs_conf
+
+        # Test finding conf.py from subdirectory
+        found_conf = find_sphinx_conf(subdir)
+        assert found_conf == docs_conf
+
+        # Test finding conf.py from sub-subdirectory
+        found_conf = find_sphinx_conf(subsubdir)
+        assert found_conf == docs_conf
+
+        # Test finding conf.py from a file in the directory
+        test_file = subsubdir / "test.rst"
+        test_file.touch()
+        found_conf = find_sphinx_conf(test_file)
+        assert found_conf == docs_conf
+
+        # Test when no conf.py is found
+        outside_dir = tmp_path / "outside"
+        outside_dir.mkdir()
+        found_conf = find_sphinx_conf(outside_dir)
+        assert found_conf is None
+
+
+def test_context_in_config():
+    """Test that sphinx_context is properly added to config."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp_path = Path(tmpdir)
+
+        # Create a docs directory with conf.py
+        docs_dir = tmp_path / "docs"
+        docs_dir.mkdir()
+        conf_path = docs_dir / "conf.py"
+        conf_path.touch()
+
+        # Test that context is added when path is provided
+        with patch("sphinx_cmd.config.get_config_path", return_value=None):
+            config = load_config(context_path=str(docs_dir))
+            assert "sphinx_context" in config
+            assert config["sphinx_context"] == docs_dir
+
+        # Test auto-detection when no context_path is provided
+        subdir = docs_dir / "subdir"
+        subdir.mkdir()
+
+        with patch("sphinx_cmd.config.get_config_path", return_value=None):
+            with patch("sphinx_cmd.config.Path.cwd", return_value=subdir):
+                config = load_config()
+                assert "sphinx_context" in config
+                assert config["sphinx_context"] == docs_dir
+
+        # Test when no conf.py is found
+        outside_dir = tmp_path / "outside"
+        outside_dir.mkdir()
+
+        with patch("sphinx_cmd.config.get_config_path", return_value=None):
+            with patch("sphinx_cmd.config.Path.cwd", return_value=outside_dir):
+                config = load_config()
+                assert "sphinx_context" in config
+                assert config["sphinx_context"] is None

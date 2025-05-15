@@ -9,6 +9,8 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Tuple
 
+from sphinx_cmd.config import get_directive_patterns, find_sphinx_conf
+
 # Regex patterns for different types of references in reStructuredText
 REFERENCE_PATTERNS = {
     "toctree": re.compile(r"^\s*(\S+)\s*$", re.MULTILINE),
@@ -41,7 +43,7 @@ def find_all_rst_files(root_path: str) -> List[str]:
     return rst_files
 
 
-def extract_references(file_path: str) -> Dict[str, List[str]]:
+def extract_references(file_path: str, context_path: str = None) -> Dict[str, List[str]]:
     """Extract all file references from an .rst file."""
     references = defaultdict(list)
 
@@ -78,7 +80,7 @@ def extract_references(file_path: str) -> Dict[str, List[str]]:
 
 
 def find_files_referencing(
-    target_file: str, all_files: List[str]
+    target_file: str, all_files: List[str], context_path: str = None
 ) -> List[Tuple[str, str]]:
     """Find all files that reference the target file."""
     referencing_files = []
@@ -90,7 +92,8 @@ def find_files_referencing(
             continue
 
         try:
-            references = extract_references(file_path)
+            # Extract references using context from conf.py if provided
+            references = extract_references(file_path, context_path=context_path)
 
             for ref_type, ref_list in references.items():
                 for ref in ref_list:
@@ -166,7 +169,8 @@ def update_references_in_file(file_path: str, old_ref: str, new_ref: str) -> boo
 
 
 def move_rst_file(
-    source: str, destination: str, update_references: bool = True, dry_run: bool = False
+    source: str, destination: str, update_references: bool = True,
+    dry_run: bool = False, context_path: str = None
 ) -> None:
     """Move an RST file and optionally update all references to it."""
     source_path = Path(source).resolve()
@@ -208,8 +212,8 @@ def move_rst_file(
         root_dir = Path.cwd()  # Or use a smarter root detection
         all_files = find_all_rst_files(str(root_dir))
 
-        # Find files that reference the moved file
-        referencing_files = find_files_referencing(str(source_rel), all_files)
+        # Find files that reference the moved file, using context if provided
+        referencing_files = find_files_referencing(str(source_rel), all_files, context_path=context_path)
 
         if referencing_files:
             print(f"\nUpdating references in {len(referencing_files)} file(s):")
@@ -241,12 +245,16 @@ def execute(args):
         update_refs = getattr(args, "no_update_refs", False)
         update_references = not update_refs
 
+        # Get context path if provided
+        context_path = getattr(args, 'context', None)
+
         # Perform the move
         move_rst_file(
             args.source,
             args.destination,
             update_references=update_references,
             dry_run=getattr(args, "dry_run", False),
+            context_path=context_path,
         )
 
         if not getattr(args, "dry_run", False):

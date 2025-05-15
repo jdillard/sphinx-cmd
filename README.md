@@ -12,6 +12,20 @@ pip install sphinx-cmd
 
 The `sphinx-cmd` tool provides subcommands for different Sphinx documentation management tasks.
 
+### Global Options
+
+Options that apply to all commands:
+
+```bash
+# Specify a context path (directory containing conf.py)
+sphinx-cmd --context /path/to/docs COMMAND
+
+# Short form
+sphinx-cmd -c /path/to/docs COMMAND
+```
+
+By default, `sphinx-cmd` will automatically detect the context of your documentation project by finding the nearest `conf.py` file in the directory tree.
+
 ### `sphinx-cmd rm`
 
 Delete unused .rst files and their unique assets (images, includes, etc) if not used elsewhere.
