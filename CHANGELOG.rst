@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.2.2
+-----
+
+- Remove unique assets from includes
+
 0.2.1
 -----
 
