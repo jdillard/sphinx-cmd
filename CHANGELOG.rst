@@ -4,7 +4,7 @@ Changelog
 0.4.1
 -----
 
-- Add verbrose mode
+- Add verbose mode
 
 0.4.0
 -----
