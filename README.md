@@ -24,7 +24,7 @@ sphinx-cmd rm path/to/docs
 sphinx-cmd rm path/to/docs --dry-run
 ```
 
-### Features
+#### Features
 
 - Configure custom directives to be processed
 
