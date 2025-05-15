@@ -20,7 +20,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
-dependencies = []
+dependencies = ["tomli>=2.0.0; python_version < '3.11'"]
 
 [project.urls]
 "Homepage" = "https://github.com/jdillard/sphinx-cmd"
@@ -76,6 +76,10 @@ profile = "black"
 
 [tool.mypy]
 python_version = "3.9"
+
+[[tool.mypy.overrides]]
+module = "tomli"
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
