@@ -24,6 +24,10 @@ sphinx-cmd rm path/to/docs
 sphinx-cmd rm path/to/docs --dry-run
 ```
 
+### Features
+
+- Configure custom directives to be processed
+
 ### `sphinx-cmd mv`
 
 Move/rename .rst files and automatically update all references to them.
@@ -49,6 +53,22 @@ sphinx-cmd mv old-file.rst new-file.rst --no-update-refs
 - Updates `include` and `literalinclude` directives
 - Handles relative paths correctly
 - Preserves file relationships
+
+## Configuration
+
+You can add custom directives to be processed by creating a `.sphinx-cmd.toml` file in either your current working directory or your home directory.
+
+Add your custom directives to `[directives]` with their respective regex patterns, for example:
+
+```toml
+[directives]
+drawio-figure = "^\\s*\\.\\.\\s+drawio-figure::\\s+(.+)$"
+drawio-image = "^\\s*\\.\\.\\s+drawio-image::\\s+(.+)$"
+```
+
+> [!NOTE]
+> Each regex pattern must include a capturing group `(.+)` to extract the file path.
+
 
 ## Development
 

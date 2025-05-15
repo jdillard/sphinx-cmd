@@ -6,13 +6,7 @@ Command to delete unused .rst files and their unique assets.
 import os
 import re
 from collections import defaultdict
-
-# Regex patterns for reStructuredText directives
-DIRECTIVE_PATTERNS = {
-    "image": re.compile(r"^\s*\.\.\s+image::\s+(.+)$", re.MULTILINE),
-    "figure": re.compile(r"^\s*\.\.\s+figure::\s+(.+)$", re.MULTILINE),
-    "include": re.compile(r"^\s*\.\.\s+include::\s+(.+)$", re.MULTILINE),
-}
+from sphinx_cmd.config import get_directive_patterns
 
 
 def find_rst_files(path):
@@ -39,6 +33,7 @@ def extract_assets(file_path, visited=None):
     visited.add(abs_path)
 
     asset_directives = {}
+    directive_patterns = get_directive_patterns()
 
     # If file doesn't exist, skip it
     if not os.path.exists(file_path):
@@ -47,7 +42,7 @@ def extract_assets(file_path, visited=None):
     try:
         with open(file_path, encoding="utf-8") as f:
             content = f.read()
-            for directive, pattern in DIRECTIVE_PATTERNS.items():
+            for directive, pattern in directive_patterns.items():
                 for match in pattern.findall(content):
                     asset_path = match.strip()
                     asset_full_path = os.path.normpath(
@@ -99,20 +94,24 @@ def get_transitive_includes(file_path, visited=None):
     if not os.path.exists(file_path):
         return includes
 
+    directive_patterns = get_directive_patterns()
+
     try:
         with open(file_path, encoding="utf-8") as f:
             content = f.read()
-            pattern = DIRECTIVE_PATTERNS["include"]
-            for match in pattern.findall(content):
-                include_path = match.strip()
-                include_full_path = os.path.normpath(
-                    os.path.join(os.path.dirname(file_path), include_path)
-                )
-                includes.add(include_full_path)
-                # Recursively get includes from the included file
-                includes.update(
-                    get_transitive_includes(include_full_path, visited.copy())
-                )
+            # Only process include directive
+            if "include" in directive_patterns:
+                pattern = directive_patterns["include"]
+                for match in pattern.findall(content):
+                    include_path = match.strip()
+                    include_full_path = os.path.normpath(
+                        os.path.join(os.path.dirname(file_path), include_path)
+                    )
+                    includes.add(include_full_path)
+                    # Recursively get includes from the included file
+                    includes.update(
+                        get_transitive_includes(include_full_path, visited.copy())
+                    )
     except Exception as e:
         print(f"Warning: Could not read {file_path}: {e}")
 
