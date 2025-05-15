@@ -93,8 +93,9 @@ Test Page
         # Execute the rm command with mocked config
         with patch("sphinx_cmd.config.get_config_path", return_value=config_path):
             # Setup to capture stdout
-            from io import StringIO
             import sys
+            from io import StringIO
+
             captured_output = StringIO()
             original_stdout = sys.stdout
             sys.stdout = captured_output
