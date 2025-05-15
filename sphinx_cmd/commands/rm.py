@@ -308,8 +308,10 @@ def execute(args):
     original_path = os.path.abspath(args.path)
     rst_files = find_rst_files(args.path)
 
-    # Pass context to build_asset_index
+    # Get global options
     context_path = getattr(args, "context", None)
+    dry_run = getattr(args, "dry_run", False)
+    directives = getattr(args, "directives", None)
 
     # Display context information
     if context_path:
@@ -320,23 +322,23 @@ def execute(args):
         print("Context path not set - all unused files will be removed")
 
     asset_to_files, file_to_assets, asset_directive_map = build_asset_index(
-        rst_files, cli_directives=args.directives, context_path=context_path
+        rst_files, cli_directives=directives, context_path=context_path
     )
     deleted_pages, deleted_assets, affected_dirs, would_delete_something = (
         delete_unused_assets_and_pages(
             asset_to_files,
             file_to_assets,
             asset_directive_map,
-            args.dry_run,
+            dry_run,
             context_path,
         )
     )
 
     deleted_dirs = []
     if affected_dirs:
-        deleted_dirs = remove_empty_dirs(affected_dirs, original_path, args.dry_run)
+        deleted_dirs = remove_empty_dirs(affected_dirs, original_path, dry_run)
 
-    if args.dry_run:
+    if dry_run:
         # In dry-run mode, show a summary of what would be deleted
         if not would_delete_something:
             print("\n[dry-run] No unused files found, nothing would be deleted.")

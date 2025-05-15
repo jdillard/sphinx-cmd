@@ -250,19 +250,20 @@ def execute(args):
         update_refs = getattr(args, "no_update_refs", False)
         update_references = not update_refs
 
-        # Get context path if provided
+        # Get global options
         context_path = getattr(args, "context", None)
+        dry_run = getattr(args, "dry_run", False)
 
         # Perform the move
         move_rst_file(
             args.source,
             args.destination,
             update_references=update_references,
-            dry_run=getattr(args, "dry_run", False),
+            dry_run=dry_run,
             context_path=context_path,
         )
 
-        if not getattr(args, "dry_run", False):
+        if not dry_run:
             print("\n✓ Move completed successfully!")
         else:
             print("\n[Dry run complete - no files were actually moved]")

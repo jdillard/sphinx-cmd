@@ -5,6 +5,7 @@ Changelog
 -----
 
 - Add context path
+- Move ``dry-run`` and ``directives`` to global options
 
 0.3.1
 -----

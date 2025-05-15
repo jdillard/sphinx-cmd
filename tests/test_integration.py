@@ -19,9 +19,9 @@ Test Page
         with open(os.path.join(tmpdir, "test.png"), "w") as f:
             f.write("fake image")
 
-        # Run the command with dry-run
+        # Run the command with dry-run (now using global --dry-run option)
         result = subprocess.run(
-            ["sphinx-cmd", "rm", tmpdir, "--dry-run"], capture_output=True, text=True
+            ["sphinx-cmd", "--dry-run", "rm", tmpdir], capture_output=True, text=True
         )
 
         # Check that it executed successfully

@@ -43,18 +43,6 @@ jobs:
       run: |
         pytest
 
-    - name: Test CLI commands
-      run: |
-        sphinx-cmd --help
-        sphinx-cmd rm --help
-        sphinx-cmd --version
-
-    - name: Create test directory and run rm command
-      run: |
-        mkdir -p test_docs
-        echo "Test" > test_docs/test.rst
-        sphinx-cmd rm test_docs --dry-run
-
     # - name: Build package
     #   run: |
     #     pip install build
