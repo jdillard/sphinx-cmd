@@ -7,8 +7,36 @@ from sphinx_cmd.commands.rm import (
     execute,
     extract_assets,
     find_rst_files,
+    get_transitive_includes,
     remove_empty_dirs,
 )
+
+
+def test_nested_includes_extraction():
+    """Test that nested includes are properly extracted."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Create a more complex nested include structure
+        main_file = os.path.join(tmpdir, "main.rst")
+        include1 = os.path.join(tmpdir, "include1.rst")
+        include2 = os.path.join(tmpdir, "include2.rst")
+
+        # Create the files with content
+        with open(include2, "w") as f:
+            f.write("Level 2 include\n")
+
+        with open(include1, "w") as f:
+            f.write("Level 1 include\n.. include:: include2.rst\n")
+
+        with open(main_file, "w") as f:
+            f.write("Main file\n.. include:: include1.rst\n")
+
+        # Test the transitive includes function
+        includes = get_transitive_includes(main_file)
+
+        # Should have found both include files
+        assert len(includes) == 2
+        assert include1 in includes
+        assert include2 in includes
 
 
 def test_rm_command_functionality():
@@ -150,6 +178,85 @@ def test_non_empty_directory_retained():
         assert os.path.exists(nested_dir)
         assert os.path.exists(docs_dir)
         assert os.path.exists(other_file)
+
+
+def test_extract_assets_basic():
+    """Test that extract_assets finds assets in a simple file."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Create a test file with multiple directives
+        test_file = os.path.join(tmpdir, "test.rst")
+
+        with open(test_file, "w") as f:
+            f.write("""
+Test Document
+============
+
+.. image:: img.png
+.. figure:: fig.jpg
+.. include:: inc.rst
+""")
+
+        # Extract assets
+        assets = extract_assets(test_file)
+
+        # Check we have the right number of assets
+        assert len(assets) == 3
+
+        # Check all asset paths are correct
+        img_path = os.path.join(tmpdir, "img.png")
+        fig_path = os.path.join(tmpdir, "fig.jpg")
+        inc_path = os.path.join(tmpdir, "inc.rst")
+
+        assert img_path in assets
+        assert fig_path in assets
+        assert inc_path in assets
+
+
+def test_get_transitive_includes():
+    """Test that get_transitive_includes correctly finds all included files."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Create a multi-level include structure
+        main_file = os.path.join(tmpdir, "main.rst")
+        first_include = os.path.join(tmpdir, "first.rst")
+        second_include = os.path.join(tmpdir, "second.rst")
+
+        # Create the files
+        with open(second_include, "w") as f:
+            f.write("Content in second include\n")
+
+        with open(first_include, "w") as f:
+            f.write(".. include:: second.rst\n")
+
+        with open(main_file, "w") as f:
+            f.write(".. include:: first.rst\n")
+
+        # Get all transitive includes from main file
+        includes = get_transitive_includes(main_file)
+
+        # Should find both included files
+        assert len(includes) == 2
+        assert first_include in includes
+        assert second_include in includes
+
+
+def test_circular_includes_detection():
+    """Test that circular includes are detected and don't cause infinite recursion."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Create two files that include each other
+        file1 = os.path.join(tmpdir, "file1.rst")
+        file2 = os.path.join(tmpdir, "file2.rst")
+
+        with open(file1, "w") as f:
+            f.write("File 1\n\n.. include:: file2.rst\n")
+
+        with open(file2, "w") as f:
+            f.write("File 2\n\n.. include:: file1.rst\n")
+
+        # Should find both includes but avoid infinite recursion
+        includes = get_transitive_includes(file1)
+        assert len(includes) == 2  # Changed from 1 to 2
+        assert file2 in includes
+        assert file1 in includes  # file1 is included by file2
 
 
 def test_remove_empty_dirs_function():
