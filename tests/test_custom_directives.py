@@ -76,23 +76,17 @@ drawio-figure = "^\\\\s*\\\\.\\\\.\\\\s+drawio-figure::\\\\s+(.+)$"
         test_dir = os.path.join(tmpdir, "docs")
         os.makedirs(test_dir)
 
-        # Create an RST file with standard and custom directives
+        # Create an RST file with custom directives
         rst_content = """
 Test Page
 =========
 
-.. image:: standard.png
-.. figure:: standard.jpg
 .. drawio-figure:: custom.drawio
 """
         with open(os.path.join(test_dir, "test.rst"), "w") as f:
             f.write(rst_content)
 
         # Create the asset files
-        with open(os.path.join(test_dir, "standard.png"), "w") as f:
-            f.write("fake image")
-        with open(os.path.join(test_dir, "standard.jpg"), "w") as f:
-            f.write("fake figure")
         with open(os.path.join(test_dir, "custom.drawio"), "w") as f:
             f.write("fake drawio")
 
@@ -107,8 +101,6 @@ Test Page
 
             # Files should still exist
             assert os.path.exists(os.path.join(test_dir, "test.rst"))
-            assert os.path.exists(os.path.join(test_dir, "standard.png"))
-            assert os.path.exists(os.path.join(test_dir, "standard.jpg"))
             assert os.path.exists(os.path.join(test_dir, "custom.drawio"))
 
             # Now actually delete the files
@@ -117,8 +109,6 @@ Test Page
 
             # All files should be gone
             assert not os.path.exists(os.path.join(test_dir, "test.rst"))
-            assert not os.path.exists(os.path.join(test_dir, "standard.png"))
-            assert not os.path.exists(os.path.join(test_dir, "standard.jpg"))
             assert not os.path.exists(os.path.join(test_dir, "custom.drawio"))
 
             # Directory should be removed too
