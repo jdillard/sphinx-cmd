@@ -14,9 +14,7 @@ def test_custom_directive_extraction():
 
         # Create config with proper TOML syntax
         toml_content = """
-[directives]
-drawio-figure = "^\\\\s*\\\\.\\\\.\\\\s+drawio-figure::\\\\s+(.+)$"
-drawio-image = "^\\\\s*\\\\.\\\\.\\\\s+drawio-image::\\\\s+(.+)$"
+directives = ["drawio-figure", "drawio-image"]
 """
         with open(config_path, "wb") as f:
             f.write(toml_content.encode())
@@ -66,8 +64,7 @@ def test_rm_command_with_custom_directives():
 
         # Create config with proper TOML syntax
         toml_content = """
-[directives]
-drawio-figure = "^\\\\s*\\\\.\\\\.\\\\s+drawio-figure::\\\\s+(.+)$"
+directives = ["drawio-figure"]
 """
         with open(config_path, "wb") as f:
             f.write(toml_content.encode())
@@ -104,6 +101,7 @@ Test Page
                 args = Mock()
                 args.path = test_dir
                 args.dry_run = True
+                args.directives = None
 
                 # Run with dry-run to test detection
                 execute(args)

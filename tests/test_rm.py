@@ -84,6 +84,7 @@ Test Page
         args = Mock()
         args.path = test_dir
         args.dry_run = True
+        args.directives = None
         execute(args)
 
         # Verify files still exist after dry run
@@ -127,6 +128,7 @@ def test_empty_directory_removal():
         args = Mock()
         args.path = docs_dir
         args.dry_run = False
+        args.directives = None
 
         # Execute the command to remove files
         execute(args)
@@ -169,6 +171,7 @@ def test_non_empty_directory_retained():
         args = Mock()
         args.path = docs_dir
         args.dry_run = False
+        args.directives = None
 
         # Execute the command to remove files
         execute(args)
