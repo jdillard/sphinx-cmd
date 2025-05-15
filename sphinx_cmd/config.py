@@ -3,9 +3,9 @@
 Configuration handling for sphinx-cmd.
 """
 
+import os
 import re
 import sys
-import os
 from pathlib import Path
 from typing import Dict, Optional, Union
 

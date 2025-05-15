@@ -9,7 +9,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Tuple
 
-from sphinx_cmd.config import get_directive_patterns, find_sphinx_conf
+from sphinx_cmd.config import find_sphinx_conf, get_directive_patterns
 
 # Regex patterns for different types of references in reStructuredText
 REFERENCE_PATTERNS = {
