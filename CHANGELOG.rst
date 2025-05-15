@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.3.1
+-----
+
+- Simplify toml configuration
+- Allow config to be passed via command line
+
 0.3.0
 -----
 

@@ -39,6 +39,12 @@ def create_parser():
         action="store_true",
         help="Preview deletions without removing files",
     )
+    rm_parser.add_argument(
+        "--directives",
+        type=lambda s: [x.strip() for x in s.split(",")],
+        help="Additional directives to process as comma-separated list"
+        " (e.g. 'drawio-figure,drawio-image')",
+    )
     rm_parser.set_defaults(command_name="rm")
 
     # Add 'mv' subcommand
@@ -57,6 +63,12 @@ def create_parser():
         "--no-update-refs",
         action="store_true",
         help="Do not update references to the moved file",
+    )
+    mv_parser.add_argument(
+        "--directives",
+        type=lambda s: [x.strip() for x in s.split(",")],
+        help="Additional directives to process as comma-separated list"
+        " (e.g. 'drawio-figure,drawio-image')",
     )
     mv_parser.set_defaults(command_name="mv")
 

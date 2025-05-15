@@ -21,7 +21,7 @@ def find_rst_files(path):
     return rst_files
 
 
-def extract_assets(file_path, visited=None):
+def extract_assets(file_path, visited=None, cli_directives=None):
     """Extract asset references from an .rst file, recursively parsing includes."""
     if visited is None:
         visited = set()
@@ -33,7 +33,7 @@ def extract_assets(file_path, visited=None):
     visited.add(abs_path)
 
     asset_directives = {}
-    directive_patterns = get_directive_patterns()
+    directive_patterns = get_directive_patterns(cli_directives)
 
     # If file doesn't exist, skip it
     if not os.path.exists(file_path):
@@ -63,14 +63,14 @@ def extract_assets(file_path, visited=None):
     return asset_directives
 
 
-def build_asset_index(rst_files):
+def build_asset_index(rst_files, cli_directives=None):
     """Build an index of assets and which files reference them."""
     asset_to_files = defaultdict(set)
     file_to_assets = {}
     asset_directive_map = {}
 
     for rst in rst_files:
-        asset_directives = extract_assets(rst)
+        asset_directives = extract_assets(rst, cli_directives=cli_directives)
         file_to_assets[rst] = set(asset_directives.keys())
         for asset, directive in asset_directives.items():
             asset_to_files[asset].add(rst)
@@ -78,7 +78,7 @@ def build_asset_index(rst_files):
     return asset_to_files, file_to_assets, asset_directive_map
 
 
-def get_transitive_includes(file_path, visited=None):
+def get_transitive_includes(file_path, visited=None, cli_directives=None):
     """Get all files included transitively from a file."""
     if visited is None:
         visited = set()
@@ -94,7 +94,7 @@ def get_transitive_includes(file_path, visited=None):
     if not os.path.exists(file_path):
         return includes
 
-    directive_patterns = get_directive_patterns()
+    directive_patterns = get_directive_patterns(cli_directives)
 
     try:
         with open(file_path, encoding="utf-8") as f:
@@ -110,7 +110,9 @@ def get_transitive_includes(file_path, visited=None):
                     includes.add(include_full_path)
                     # Recursively get includes from the included file
                     includes.update(
-                        get_transitive_includes(include_full_path, visited.copy())
+                        get_transitive_includes(
+                            include_full_path, visited.copy(), cli_directives
+                        )
                     )
     except Exception as e:
         print(f"Warning: Could not read {file_path}: {e}")
@@ -237,7 +239,9 @@ def execute(args):
     """Execute the rm command."""
     original_path = os.path.abspath(args.path)
     rst_files = find_rst_files(args.path)
-    asset_to_files, file_to_assets, asset_directive_map = build_asset_index(rst_files)
+    asset_to_files, file_to_assets, asset_directive_map = build_asset_index(
+        rst_files, cli_directives=args.directives
+    )
     deleted_pages, deleted_assets, affected_dirs = delete_unused_assets_and_pages(
         asset_to_files, file_to_assets, asset_directive_map, args.dry_run
     )
