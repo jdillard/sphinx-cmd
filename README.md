@@ -2,6 +2,9 @@
 
 A collection of command-line tools for managing Sphinx documentation.
 
+[![PyPI version](https://img.shields.io/pypi/v/sphinx-sitemap.svg)](https://pypi.python.org/pypi/sphinx-sitemap)
+[![Downloads](https://static.pepy.tech/badge/sphinx-cmd/month)](https://pepy.tech/project/sphinx-cmd)
+
 ## Installation
 
 ```bash
