@@ -43,7 +43,7 @@ def create_parser():
         "--directives",
         type=lambda s: [x.strip() for x in s.split(",")],
         help="Additional directives to process as comma-separated list"
-             " (e.g. 'drawio-figure,drawio-image')",
+        " (e.g. 'drawio-figure,drawio-image')",
     )
     rm_parser.set_defaults(command_name="rm")
 
@@ -68,7 +68,7 @@ def create_parser():
         "--directives",
         type=lambda s: [x.strip() for x in s.split(",")],
         help="Additional directives to process as comma-separated list"
-             " (e.g. 'drawio-figure,drawio-image')",
+        " (e.g. 'drawio-figure,drawio-image')",
     )
     mv_parser.set_defaults(command_name="mv")
 
