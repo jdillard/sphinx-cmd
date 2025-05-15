@@ -6,7 +6,7 @@ Configuration handling for sphinx-cmd.
 import re
 import sys
 from pathlib import Path
-from typing import Dict, Optional, Union
+from typing import Any, Dict, Optional, Union
 
 # Use the standard library tomllib if Python 3.11+, otherwise use tomli package
 if sys.version_info >= (3, 11):
@@ -61,7 +61,7 @@ def find_sphinx_conf(start_path: Optional[Union[str, Path]] = None) -> Optional[
     return None
 
 
-def load_config(cli_directives=None, context_path=None) -> Dict:
+def load_config(cli_directives=None, context_path=None) -> Dict[str, Any]:
     """
     Load configuration from a TOML file and merge with CLI directives.
 
@@ -155,4 +155,7 @@ def get_sphinx_context(cli_context: Optional[str] = None) -> Optional[Path]:
         Path to the Sphinx docs directory (containing conf.py) if found, None otherwise
     """
     config = load_config(context_path=cli_context)
-    return config.get("sphinx_context")
+    sphinx_context = config.get("sphinx_context")
+    if sphinx_context and len(sphinx_context) > 0:
+        return Path(sphinx_context[0])
+    return None

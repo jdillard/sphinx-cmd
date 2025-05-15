@@ -168,7 +168,7 @@ def test_context_in_config():
         with patch("sphinx_cmd.config.get_config_path", return_value=None):
             config = load_config(context_path=str(docs_dir))
             assert "sphinx_context" in config
-            assert config["sphinx_context"] == docs_dir
+            assert config["sphinx_context"] == [str(docs_dir)]
 
         # Test auto-detection when no context_path is provided
         subdir = docs_dir / "subdir"
@@ -178,7 +178,7 @@ def test_context_in_config():
             with patch("sphinx_cmd.config.Path.cwd", return_value=subdir):
                 config = load_config()
                 assert "sphinx_context" in config
-                assert config["sphinx_context"] == docs_dir
+                assert config["sphinx_context"] == [str(docs_dir)]
 
         # Test when no conf.py is found
         outside_dir = tmp_path / "outside"
@@ -188,4 +188,4 @@ def test_context_in_config():
             with patch("sphinx_cmd.config.Path.cwd", return_value=outside_dir):
                 config = load_config()
                 assert "sphinx_context" in config
-                assert config["sphinx_context"] is None
+                assert config["sphinx_context"] == []
