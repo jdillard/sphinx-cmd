@@ -1,11 +1,9 @@
 import os
 import tempfile
-from unittest.mock import Mock, patch
 from pathlib import Path
+from unittest.mock import Mock, patch
 
-import pytest
-
-from sphinx_cmd.commands.rm import extract_assets, execute
+from sphinx_cmd.commands.rm import execute, extract_assets
 
 
 def test_custom_directive_extraction():
@@ -14,23 +12,27 @@ def test_custom_directive_extraction():
         # Create a test config with custom directives
         config_path = Path(tmpdir) / ".sphinx-cmd.toml"
         with open(config_path, "w") as f:
-            f.write("""
+            f.write(
+                """
 [directives]
 drawio-figure = "^\\s*\\.\\.\\s+drawio-figure::\\s+(.+)$"
 drawio-image = "^\\s*\\.\\.\\s+drawio-image::\\s+(.+)$"
-            """)
+            """
+            )
 
         # Create a test file with custom directives
         test_file = os.path.join(tmpdir, "test.rst")
         with open(test_file, "w") as f:
-            f.write("""
+            f.write(
+                """
 Test Document
 ============
 
 .. image:: standard-image.png
 .. drawio-figure:: custom-figure.drawio
 .. drawio-image:: custom-image.drawio
-            """)
+            """
+            )
 
         # Mock the config path function to use our temp config
         with patch("sphinx_cmd.config.get_config_path", return_value=config_path):
@@ -61,10 +63,12 @@ def test_rm_command_with_custom_directives():
         # Create a test config with custom directives
         config_path = Path(tmpdir) / ".sphinx-cmd.toml"
         with open(config_path, "w") as f:
-            f.write("""
+            f.write(
+                """
 [directives]
 drawio-figure = "^\\s*\\.\\.\\s+drawio-figure::\\s+(.+)$"
-            """)
+            """
+            )
 
         # Create test directory
         test_dir = os.path.join(tmpdir, "docs")

@@ -3,11 +3,10 @@
 Configuration handling for sphinx-cmd.
 """
 
-import os
 import re
 import sys
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict
 
 # Use the standard library tomllib if Python 3.11+, otherwise use tomli package
 if sys.version_info >= (3, 11):
@@ -24,6 +23,7 @@ DEFAULT_CONFIG = {
     }
 }
 
+
 def get_config_path() -> Path:
     """Get the path to the configuration file."""
     # Check for config in the current directory
@@ -37,6 +37,7 @@ def get_config_path() -> Path:
         return home_config
 
     return None
+
 
 def load_config() -> Dict:
     """
@@ -68,6 +69,7 @@ def load_config() -> Dict:
         print(f"Warning: Error loading config from {config_path}: {e}")
 
     return config
+
 
 def get_directive_patterns() -> Dict[str, re.Pattern]:
     """

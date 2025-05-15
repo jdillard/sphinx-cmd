@@ -1,11 +1,8 @@
-import os
 import tempfile
-from unittest.mock import patch
 from pathlib import Path
+from unittest.mock import patch
 
-import pytest
-
-from sphinx_cmd.config import load_config, get_directive_patterns
+from sphinx_cmd.config import get_directive_patterns, load_config
 
 
 def test_default_config():
@@ -27,14 +24,16 @@ def test_load_custom_config():
 
         # Create a custom config file
         with open(config_path, "w") as f:
-            f.write("""
+            f.write(
+                """
 [directives]
 image = "^\\s*\\.\\.\\s+image::\\s+(.+)$"
 figure = "^\\s*\\.\\.\\s+figure::\\s+(.+)$"
 include = "^\\s*\\.\\.\\s+include::\\s+(.+)$"
 drawio-figure = "^\\s*\\.\\.\\s+drawio-figure::\\s+(.+)$"
 drawio-image = "^\\s*\\.\\.\\s+drawio-image::\\s+(.+)$"
-            """)
+            """
+            )
 
         with patch("sphinx_cmd.config.get_config_path", return_value=config_path):
             config = load_config()
@@ -57,10 +56,12 @@ def test_get_directive_patterns():
 
         # Create a custom config file with drawio directives
         with open(config_path, "w") as f:
-            f.write("""
+            f.write(
+                """
 [directives]
 drawio-figure = "^\\s*\\.\\.\\s+drawio-figure::\\s+(.+)$"
-            """)
+            """
+            )
 
         with patch("sphinx_cmd.config.get_config_path", return_value=config_path):
             patterns = get_directive_patterns()

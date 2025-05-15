@@ -4,8 +4,8 @@ Command to delete unused .rst files and their unique assets.
 """
 
 import os
-import re
 from collections import defaultdict
+
 from sphinx_cmd.config import get_directive_patterns
 
 
