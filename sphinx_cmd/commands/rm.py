@@ -110,7 +110,9 @@ def get_transitive_includes(file_path, visited=None, cli_directives=None):
                     includes.add(include_full_path)
                     # Recursively get includes from the included file
                     includes.update(
-                        get_transitive_includes(include_full_path, visited.copy(), cli_directives)
+                        get_transitive_includes(
+                            include_full_path, visited.copy(), cli_directives
+                        )
                     )
     except Exception as e:
         print(f"Warning: Could not read {file_path}: {e}")
