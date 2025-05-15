@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.3.1
+-----
+
+- Simplify configuration
+
 0.3.0
 -----
 
