@@ -41,6 +41,12 @@ def create_parser():
         help="Additional directives to process as comma-separated list"
         " (e.g. 'drawio-figure,drawio-image')",
     )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="Enable verbose output with detailed processing information",
+    )
 
     # Create subparsers for subcommands
     subparsers = parser.add_subparsers(

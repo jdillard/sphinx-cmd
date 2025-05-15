@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.4.1
+-----
+
+- Add verbose mode
+
 0.4.0
 -----
 

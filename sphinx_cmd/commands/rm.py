@@ -21,7 +21,9 @@ def find_rst_files(path):
     return rst_files
 
 
-def extract_assets(file_path, visited=None, cli_directives=None, context_path=None):
+def extract_assets(
+    file_path, visited=None, cli_directives=None, context_path=None, verbose=False
+):
     """Extract asset references from an .rst file, recursively parsing includes."""
     if visited is None:
         visited = set()
@@ -32,11 +34,16 @@ def extract_assets(file_path, visited=None, cli_directives=None, context_path=No
         return {}
     visited.add(abs_path)
 
+    if verbose:
+        print(f"Processing file: {file_path}")
+
     asset_directives = {}
     directive_patterns = get_directive_patterns(cli_directives, context_path)
 
     # If file doesn't exist, skip it
     if not os.path.exists(file_path):
+        if verbose:
+            print(f"Skipping non-existent file: {file_path}")
         return asset_directives
 
     try:
@@ -49,13 +56,19 @@ def extract_assets(file_path, visited=None, cli_directives=None, context_path=No
                         os.path.join(os.path.dirname(file_path), asset_path)
                     )
 
+                    if verbose:
+                        print(f"Found {directive}: {asset_path}")
+
                     if directive == "include":
+                        if verbose:
+                            print(f"Parsing include: {asset_full_path}")
                         # Recursively extract assets from included files
                         included_assets = extract_assets(
                             asset_full_path,
                             visited.copy(),
                             cli_directives,
                             context_path,
+                            verbose,
                         )
                         asset_directives.update(included_assets)
 
@@ -66,25 +79,35 @@ def extract_assets(file_path, visited=None, cli_directives=None, context_path=No
     return asset_directives
 
 
-def build_asset_index(rst_files, cli_directives=None, context_path=None):
+def build_asset_index(rst_files, cli_directives=None, context_path=None, verbose=False):
     """Build an index of assets and which files reference them."""
     asset_to_files = defaultdict(set)
     file_to_assets = {}
     asset_directive_map = {}
 
+    if verbose:
+        print(f"Building asset index for {len(rst_files)} RST files...")
+
     for rst in rst_files:
         asset_directives = extract_assets(
-            rst, cli_directives=cli_directives, context_path=context_path
+            rst,
+            cli_directives=cli_directives,
+            context_path=context_path,
+            verbose=verbose,
         )
         file_to_assets[rst] = set(asset_directives.keys())
         for asset, directive in asset_directives.items():
             asset_to_files[asset].add(rst)
             asset_directive_map[asset] = directive
+
+    if verbose:
+        print(f"Found {len(asset_to_files)} unique assets across all files")
+
     return asset_to_files, file_to_assets, asset_directive_map
 
 
 def get_transitive_includes(
-    file_path, visited=None, cli_directives=None, context_path=None
+    file_path, visited=None, cli_directives=None, context_path=None, verbose=False
 ):
     """Get all files included transitively from a file."""
     if visited is None:
@@ -96,9 +119,14 @@ def get_transitive_includes(
         return set()
     visited.add(abs_path)
 
+    if verbose:
+        print(f"Checking for includes in: {file_path}")
+
     includes = set()
 
     if not os.path.exists(file_path):
+        if verbose:
+            print(f"Skipping non-existent file: {file_path}")
         return includes
 
     directive_patterns = get_directive_patterns(cli_directives, context_path)
@@ -115,6 +143,9 @@ def get_transitive_includes(
                         os.path.join(os.path.dirname(file_path), include_path)
                     )
                     includes.add(include_full_path)
+                    if verbose:
+                        print(f"Found include: {include_path}")
+
                     # Recursively get includes from the included file
                     includes.update(
                         get_transitive_includes(
@@ -122,6 +153,7 @@ def get_transitive_includes(
                             visited.copy(),
                             cli_directives,
                             context_path,
+                            verbose,
                         )
                     )
     except Exception as e:
@@ -136,6 +168,7 @@ def delete_unused_assets_and_pages(
     asset_directive_map,
     dry_run=False,
     context_path=None,
+    verbose=False,
 ):
     """
     Delete files and their unique assets if not used elsewhere.
@@ -151,15 +184,33 @@ def delete_unused_assets_and_pages(
     # Track which files have been processed to avoid duplicates
     processed_files = set()
 
+    if verbose:
+        print("Analyzing files and assets for removal...")
+
     for rst_file, assets in file_to_assets.items():
         # Skip if already processed (can happen with transitive includes)
         if rst_file in processed_files:
+            if verbose:
+                print(f"Skipping already processed file: {rst_file}")
             continue
 
         unused_assets = [a for a in assets if len(asset_to_files[a]) == 1]
+
+        if verbose:
+            print(
+                f"File: {rst_file} has {len(assets)} assets, {len(unused_assets)}"
+                " are unique"
+            )
+
         if len(unused_assets) == len(assets):  # All assets are unique to this file
+            if verbose:
+                print(f"File {rst_file} has no shared assets, processing for removal")
+
             # Get all files transitively included by this file
-            included_files = get_transitive_includes(rst_file)
+            included_files = get_transitive_includes(rst_file, verbose=verbose)
+
+            if verbose and included_files:
+                print(f"Found {len(included_files)} transitively included files")
 
             # Process the main file and all its includes
             for file_to_process in [rst_file] + list(included_files):
@@ -167,6 +218,8 @@ def delete_unused_assets_and_pages(
                     file_to_process in processed_files
                     or file_to_process not in file_to_assets
                 ):
+                    if verbose and file_to_process in processed_files:
+                        print(f"Skipping already processed include: {file_to_process}")
                     continue
 
                 processed_files.add(file_to_process)
@@ -193,6 +246,8 @@ def delete_unused_assets_and_pages(
                                     f"[dry-run] Skipping {directive} (outside context):"
                                     f" {asset}"
                                 )
+                            elif verbose:
+                                print(f"Skipping asset (outside context): {asset}")
                             continue
 
                         if dry_run:
@@ -204,6 +259,8 @@ def delete_unused_assets_and_pages(
                             )
                             would_delete_something = True
                         else:
+                            if verbose:
+                                print(f"Removing asset: {asset}")
                             affected_dirs.add(os.path.dirname(asset))
                             os.remove(asset)
                             deleted_assets.append(asset)
@@ -224,6 +281,11 @@ def delete_unused_assets_and_pages(
                                 f"[dry-run] Skipping included file (outside context):"
                                 f" {file_to_process}"
                             )
+                        elif verbose:
+                            print(
+                                "Skipping included file (outside context):"
+                                f" {file_to_process}"
+                            )
                         continue
 
                     if dry_run:
@@ -232,6 +294,8 @@ def delete_unused_assets_and_pages(
                         )
                         would_delete_something = True
                     else:
+                        if verbose:
+                            print(f"Removing included file: {file_to_process}")
                         affected_dirs.add(os.path.dirname(file_to_process))
                         os.remove(file_to_process)
                         deleted_pages.append(file_to_process)
@@ -249,12 +313,16 @@ def delete_unused_assets_and_pages(
                 if not is_in_context:
                     if dry_run:
                         print(f"[dry-run] Skipping page (outside context): {rst_file}")
+                    elif verbose:
+                        print(f"Skipping page (outside context): {rst_file}")
                     continue
 
                 if dry_run:
                     print(f"[dry-run] Would delete page: {rst_file}")
                     would_delete_something = True
                 else:
+                    if verbose:
+                        print(f"Removing page: {rst_file}")
                     affected_dirs.add(os.path.dirname(rst_file))
                     os.remove(rst_file)
                     deleted_pages.append(rst_file)
@@ -262,9 +330,12 @@ def delete_unused_assets_and_pages(
     return deleted_pages, deleted_assets, affected_dirs, would_delete_something
 
 
-def remove_empty_dirs(dirs, original_path, dry_run=False):
+def remove_empty_dirs(dirs, original_path, dry_run=False, verbose=False):
     """Remove empty directories, bottom-up."""
     deleted_dirs = []
+
+    if verbose:
+        print(f"Checking for empty directories in {len(dirs)} affected paths...")
 
     # Add parent directories to the affected dirs set
     all_dirs = set(dirs)
@@ -278,9 +349,14 @@ def remove_empty_dirs(dirs, original_path, dry_run=False):
     # Sort by path depth (deepest first)
     sorted_dirs = sorted(all_dirs, key=lambda d: d.count(os.sep), reverse=True)
 
+    if verbose:
+        print(f"Scanning {len(sorted_dirs)} directories for emptiness...")
+
     # Process directories from deepest to shallowest
     for dir_path in sorted_dirs:
         if not os.path.exists(dir_path) or not os.path.isdir(dir_path):
+            if verbose:
+                print(f"Skipping non-existent or non-directory path: {dir_path}")
             continue
 
         # Check if directory is empty
@@ -288,8 +364,12 @@ def remove_empty_dirs(dirs, original_path, dry_run=False):
             if dry_run:
                 print(f"[dry-run] Would delete empty directory: {dir_path}")
             else:
+                if verbose:
+                    print(f"Removing empty directory: {dir_path}")
                 os.rmdir(dir_path)
                 deleted_dirs.append(dir_path)
+        elif verbose:
+            print(f"Directory not empty, skipping: {dir_path}")
 
     # Check if the original path (if it's a directory) is now empty and should
     # be removed
@@ -297,6 +377,8 @@ def remove_empty_dirs(dirs, original_path, dry_run=False):
         if dry_run:
             print(f"[dry-run] Would delete empty directory: {original_path}")
         else:
+            if verbose:
+                print(f"Removing empty original directory: {original_path}")
             os.rmdir(original_path)
             deleted_dirs.append(original_path)
 
@@ -306,12 +388,21 @@ def remove_empty_dirs(dirs, original_path, dry_run=False):
 def execute(args):
     """Execute the rm command."""
     original_path = os.path.abspath(args.path)
-    rst_files = find_rst_files(args.path)
 
     # Get global options
     context_path = getattr(args, "context", None)
     dry_run = getattr(args, "dry_run", False)
     directives = getattr(args, "directives", None)
+    verbose = getattr(args, "verbose", False)
+
+    if verbose:
+        print(f"Starting sphinx-cmd rm operation on path: {original_path}")
+        print(f"Options: dry-run={dry_run}, directives={directives}")
+
+    rst_files = find_rst_files(args.path)
+
+    if verbose:
+        print(f"Found {len(rst_files)} RST files to analyze")
 
     # Display context information
     if context_path:
@@ -322,8 +413,9 @@ def execute(args):
         print("Context path not set - all unused files will be removed")
 
     asset_to_files, file_to_assets, asset_directive_map = build_asset_index(
-        rst_files, cli_directives=directives, context_path=context_path
+        rst_files, cli_directives=directives, context_path=context_path, verbose=verbose
     )
+
     deleted_pages, deleted_assets, affected_dirs, would_delete_something = (
         delete_unused_assets_and_pages(
             asset_to_files,
@@ -331,12 +423,13 @@ def execute(args):
             asset_directive_map,
             dry_run,
             context_path,
+            verbose,
         )
     )
 
     deleted_dirs = []
     if affected_dirs:
-        deleted_dirs = remove_empty_dirs(affected_dirs, original_path, dry_run)
+        deleted_dirs = remove_empty_dirs(affected_dirs, original_path, dry_run, verbose)
 
     if dry_run:
         # In dry-run mode, show a summary of what would be deleted
@@ -357,3 +450,6 @@ def execute(args):
             print(f"\nDeleted {len(deleted_dirs)} empty directory/directories:")
             for d in deleted_dirs:
                 print(f"  - {d}")
+
+    if verbose:
+        print("Operation completed successfully")
