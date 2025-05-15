@@ -77,6 +77,10 @@ profile = "black"
 [tool.mypy]
 python_version = "3.9"
 
+[[tool.mypy.overrides]]
+module = "tomli"
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
