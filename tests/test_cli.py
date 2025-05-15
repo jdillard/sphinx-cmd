@@ -14,9 +14,12 @@ def test_cli_help():
     assert "sphinx-cmd" in parser.format_help()
     assert "rm" in parser.format_help()
     assert "mv" in parser.format_help()
-    # Check that context argument is present
+    # Check that global arguments are present
     assert "--context" in parser.format_help()
     assert "-c" in parser.format_help()
+    assert "--dry-run" in parser.format_help()
+    assert "-n" in parser.format_help()
+    assert "--directives" in parser.format_help()
 
 
 def test_cli_no_command():

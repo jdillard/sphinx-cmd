@@ -145,8 +145,10 @@ def test_move_command_dry_run():
         args = Mock()
         args.source = "source.rst"
         args.destination = "destination.rst"
-        args.dry_run = True
+        args.dry_run = True  # Global option, but still accessed in command
         args.no_update_refs = False
+        args.directives = None  # Mock the global directives option
+        args.context = None  # Mock the global context option
 
         # Run the move command
         from sphinx_cmd.commands.mv import execute

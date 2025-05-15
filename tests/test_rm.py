@@ -94,9 +94,9 @@ Test Page
         # Test dry run with mock args
         args = Mock()
         args.path = test_dir
-        args.dry_run = True
-        args.directives = None
-        args.context = None
+        args.dry_run = True  # Global option, but still accessed in command
+        args.directives = None  # Global option, but still accessed in command
+        args.context = None  # Global option, accessed the same way
 
         with patch("os.getcwd", return_value=tmpdir):
             with patch("pathlib.Path.cwd", return_value=Path(tmpdir)):

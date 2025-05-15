@@ -22,12 +22,24 @@ def create_parser():
         "--version", action="version", version=f"%(prog)s {__version__}"
     )
 
-    # Add context option
+    # Add global options
     parser.add_argument(
         "--context",
         "-c",
         help="Path to Sphinx documentation context"
         "(will auto-detect nearest conf.py by default)",
+    )
+    parser.add_argument(
+        "-n",
+        "--dry-run",
+        action="store_true",
+        help="Preview operations without making any changes",
+    )
+    parser.add_argument(
+        "--directives",
+        type=lambda s: [x.strip() for x in s.split(",")],
+        help="Additional directives to process as comma-separated list"
+        " (e.g. 'drawio-figure,drawio-image')",
     )
 
     # Create subparsers for subcommands
@@ -42,18 +54,6 @@ def create_parser():
     rm_parser.add_argument(
         "path", help="Path to a single .rst file or a directory of .rst files"
     )
-    rm_parser.add_argument(
-        "-n",
-        "--dry-run",
-        action="store_true",
-        help="Preview deletions without removing files",
-    )
-    rm_parser.add_argument(
-        "--directives",
-        type=lambda s: [x.strip() for x in s.split(",")],
-        help="Additional directives to process as comma-separated list"
-        " (e.g. 'drawio-figure,drawio-image')",
-    )
     rm_parser.set_defaults(command_name="rm")
 
     # Add 'mv' subcommand
@@ -63,21 +63,9 @@ def create_parser():
     mv_parser.add_argument("source", help="Source file to move")
     mv_parser.add_argument("destination", help="Destination file or directory")
     mv_parser.add_argument(
-        "-n",
-        "--dry-run",
-        action="store_true",
-        help="Preview move without actually moving files",
-    )
-    mv_parser.add_argument(
         "--no-update-refs",
         action="store_true",
         help="Do not update references to the moved file",
-    )
-    mv_parser.add_argument(
-        "--directives",
-        type=lambda s: [x.strip() for x in s.split(",")],
-        help="Additional directives to process as comma-separated list"
-        " (e.g. 'drawio-figure,drawio-image')",
     )
     mv_parser.set_defaults(command_name="mv")
 
