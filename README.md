@@ -14,7 +14,7 @@ The `sphinx-cmd` tool provides subcommands for different Sphinx documentation ma
 
 ### `sphinx-cmd rm`
 
-Delete unused .rst files and their unique assets if not used elsewhere.
+Delete unused .rst files and their unique assets (images, includes, etc) if not used elsewhere.
 
 ```bash
 # Remove files and assets

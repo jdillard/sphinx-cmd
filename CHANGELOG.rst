@@ -4,7 +4,7 @@ Changelog
 0.2.2
 -----
 
-- Recursively remove includes
+- Remove unique assets from includes
 
 0.2.1
 -----
