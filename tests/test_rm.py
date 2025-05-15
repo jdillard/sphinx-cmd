@@ -187,14 +187,16 @@ def test_extract_assets_basic():
         test_file = os.path.join(tmpdir, "test.rst")
 
         with open(test_file, "w") as f:
-            f.write("""
+            f.write(
+                """
 Test Document
 ============
 
 .. image:: img.png
 .. figure:: fig.jpg
 .. include:: inc.rst
-""")
+"""
+            )
 
         # Extract assets
         assets = extract_assets(test_file)
