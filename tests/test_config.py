@@ -2,11 +2,7 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-from sphinx_cmd.config import (
-    find_sphinx_conf,
-    get_directive_patterns,
-    load_config,
-)
+from sphinx_cmd.config import find_sphinx_conf, get_directive_patterns, load_config
 
 
 def test_default_config():
