@@ -22,6 +22,9 @@ sphinx-cmd rm path/to/docs
 
 # Dry run to preview deletions
 sphinx-cmd rm path/to/docs --dry-run
+
+# Process additional directives beyond defaults
+sphinx-cmd rm path/to/docs --directives drawio-figure,drawio-image
 ```
 
 #### Features
@@ -44,6 +47,9 @@ sphinx-cmd mv old-file.rst new-file.rst --dry-run
 
 # Move without updating references
 sphinx-cmd mv old-file.rst new-file.rst --no-update-refs
+
+# Process additional directives beyond defaults
+sphinx-cmd mv old-file.rst new-file.rst --directives drawio-figure,drawio-image
 ```
 
 #### Features
@@ -53,12 +59,23 @@ sphinx-cmd mv old-file.rst new-file.rst --no-update-refs
 - Updates `include` and `literalinclude` directives
 - Handles relative paths correctly
 - Preserves file relationships
+- Configure custom directives to be processed
 
 ## Configuration
 
-You can add custom directives to be processed by creating a `.sphinx-cmd.toml` file in your home directory.
+You can add custom directives to be processed in two ways:
 
-Add your custom directives to the `directives` list, for example:
+### 1. Command Line
+
+Use the `--directives` option with any command to add custom directives for a single run:
+
+```bash
+sphinx-cmd rm path/to/docs --directives drawio-figure,drawio-image
+```
+
+### 2. Configuration File
+
+Create a `.sphinx-cmd.toml` file in your home directory with your custom directives:
 
 ```toml
 directives = [
@@ -66,6 +83,8 @@ directives = [
   "drawio-image"
 ]
 ```
+
+Command line directives will be combined with those in the configuration file and the built-in defaults.
 
 
 ## Development
