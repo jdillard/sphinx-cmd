@@ -2,6 +2,9 @@
 
 A collection of command-line tools for managing Sphinx documentation.
 
+[![PyPI version](https://img.shields.io/pypi/v/sphinx-sitemap.svg)](https://pypi.python.org/pypi/sphinx-sitemap)
+[![Downloads](https://static.pepy.tech/badge/sphinx-cmd/month)](https://pepy.tech/project/sphinx-cmd)
+
 ## Installation
 
 ```bash
@@ -11,6 +14,20 @@ pip install sphinx-cmd
 ## Commands
 
 The `sphinx-cmd` tool provides subcommands for different Sphinx documentation management tasks.
+
+### Global Options
+
+Options that apply to all commands:
+
+```bash
+# Specify a context path (directory containing conf.py)
+sphinx-cmd --context /path/to/docs COMMAND
+
+# Short form
+sphinx-cmd -c /path/to/docs COMMAND
+```
+
+By default, `sphinx-cmd` will automatically detect the context of your documentation project by finding the nearest `conf.py` file in the directory tree.
 
 ### `sphinx-cmd rm`
 
@@ -30,6 +47,7 @@ sphinx-cmd rm path/to/docs --directives drawio-figure,drawio-image
 #### Features
 
 - Configure custom directives to be processed
+- Only deletes unused unique assets in the provided context path
 
 ### `sphinx-cmd mv`
 

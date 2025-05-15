@@ -14,6 +14,9 @@ def test_cli_help():
     assert "sphinx-cmd" in parser.format_help()
     assert "rm" in parser.format_help()
     assert "mv" in parser.format_help()
+    # Check that context argument is present
+    assert "--context" in parser.format_help()
+    assert "-c" in parser.format_help()
 
 
 def test_cli_no_command():
@@ -41,3 +44,15 @@ def test_cli_mv_help():
             main()
         # Help should exit with code 0
         assert excinfo.value.code == 0
+
+
+def test_cli_invalid_context():
+    """Test CLI behavior when an invalid context path is provided."""
+    with patch.object(
+        sys,
+        "argv",
+        ["sphinx-cmd", "--context", "/nonexistent/path", "rm", "some_file.rst"],
+    ):
+        with patch.object(sys, "exit") as mock_exit:
+            main()
+            mock_exit.assert_called_once_with(1)

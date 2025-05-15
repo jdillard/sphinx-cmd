@@ -4,6 +4,7 @@ Main CLI entry point for sphinx-cmd with subcommands.
 """
 
 import argparse
+import os
 import sys
 
 from sphinx_cmd import __version__
@@ -19,6 +20,14 @@ def create_parser():
     # Add version option
     parser.add_argument(
         "--version", action="version", version=f"%(prog)s {__version__}"
+    )
+
+    # Add context option
+    parser.add_argument(
+        "--context",
+        "-c",
+        help="Path to Sphinx documentation context"
+        "(will auto-detect nearest conf.py by default)",
     )
 
     # Create subparsers for subcommands
@@ -83,6 +92,11 @@ def main():
     # If no command is provided, show help
     if not hasattr(args, "command_name"):
         parser.print_help()
+        sys.exit(1)
+
+    # If context path is provided, check that it exists
+    if args.context and not os.path.exists(args.context):
+        print(f"Error: Context path does not exist: {args.context}", file=sys.stderr)
         sys.exit(1)
 
     # Import and execute the appropriate command
