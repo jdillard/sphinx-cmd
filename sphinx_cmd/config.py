@@ -26,11 +26,6 @@ DEFAULT_CONFIG = {
 
 def get_config_path() -> Optional[Path]:
     """Get the path to the configuration file."""
-    # Check for config in the current directory
-    local_config = Path.cwd() / ".sphinx-cmd.toml"
-    if local_config.exists():
-        return local_config
-
     # Check for config in user's home directory
     home_config = Path.home() / ".sphinx-cmd.toml"
     if home_config.exists():
@@ -43,9 +38,8 @@ def load_config() -> Dict:
     """
     Load configuration from a TOML file.
 
-    The function looks for config files in the following order:
-    1. .sphinx-cmd.toml in the current working directory
-    2. .sphinx-cmd.toml in the user's home directory
+    The function looks for a config file at:
+    - user's home directory
 
     Returns:
         Dict: The merged configuration (defaults + user config)

@@ -56,7 +56,7 @@ sphinx-cmd mv old-file.rst new-file.rst --no-update-refs
 
 ## Configuration
 
-You can add custom directives to be processed by creating a `.sphinx-cmd.toml` file in either your current working directory or your home directory.
+You can add custom directives to be processed by creating a `.sphinx-cmd.toml` file in your home directory.
 
 Add your custom directives to `[directives]` with their respective regex patterns, for example:
 
