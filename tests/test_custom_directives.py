@@ -11,13 +11,13 @@ def test_custom_directive_extraction():
     with tempfile.TemporaryDirectory() as tmpdir:
         # Create a test config with custom directives
         config_path = Path(tmpdir) / ".sphinx-cmd.toml"
-        with open(config_path, "w") as f:
+        with open(config_path, "wb") as f:
             f.write(
-                """
+                b"""
 [directives]
 drawio-figure = "^\\s*\\.\\.\\s+drawio-figure::\\s+(.+)$"
 drawio-image = "^\\s*\\.\\.\\s+drawio-image::\\s+(.+)$"
-            """
+"""
             )
 
         # Create a test file with custom directives
@@ -62,12 +62,12 @@ def test_rm_command_with_custom_directives():
     with tempfile.TemporaryDirectory() as tmpdir:
         # Create a test config with custom directives
         config_path = Path(tmpdir) / ".sphinx-cmd.toml"
-        with open(config_path, "w") as f:
+        with open(config_path, "wb") as f:
             f.write(
-                """
+                b"""
 [directives]
 drawio-figure = "^\\s*\\.\\.\\s+drawio-figure::\\s+(.+)$"
-            """
+"""
             )
 
         # Create test directory

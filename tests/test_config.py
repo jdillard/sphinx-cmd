@@ -22,17 +22,17 @@ def test_load_custom_config():
     with tempfile.TemporaryDirectory() as tmpdir:
         config_path = Path(tmpdir) / ".sphinx-cmd.toml"
 
-        # Create a custom config file
-        with open(config_path, "w") as f:
+        # Create a custom config file - write in binary mode for tomllib
+        with open(config_path, "wb") as f:
             f.write(
-                """
+                b"""
 [directives]
 image = "^\\s*\\.\\.\\s+image::\\s+(.+)$"
 figure = "^\\s*\\.\\.\\s+figure::\\s+(.+)$"
 include = "^\\s*\\.\\.\\s+include::\\s+(.+)$"
 drawio-figure = "^\\s*\\.\\.\\s+drawio-figure::\\s+(.+)$"
 drawio-image = "^\\s*\\.\\.\\s+drawio-image::\\s+(.+)$"
-            """
+"""
             )
 
         with patch("sphinx_cmd.config.get_config_path", return_value=config_path):
@@ -54,13 +54,13 @@ def test_get_directive_patterns():
     with tempfile.TemporaryDirectory() as tmpdir:
         config_path = Path(tmpdir) / ".sphinx-cmd.toml"
 
-        # Create a custom config file with drawio directives
-        with open(config_path, "w") as f:
+        # Create a custom config file with drawio directives - write in binary mode for tomllib
+        with open(config_path, "wb") as f:
             f.write(
-                """
+                b"""
 [directives]
 drawio-figure = "^\\s*\\.\\.\\s+drawio-figure::\\s+(.+)$"
-            """
+"""
             )
 
         with patch("sphinx_cmd.config.get_config_path", return_value=config_path):
