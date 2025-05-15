@@ -7,7 +7,7 @@ import re
 import shutil
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 # Regex patterns for different types of references in reStructuredText
 REFERENCE_PATTERNS = {
@@ -42,7 +42,7 @@ def find_all_rst_files(root_path: str) -> List[str]:
 
 
 def extract_references(
-    file_path: str, context_path: str = None
+    file_path: str, context_path: Optional[str] = None
 ) -> Dict[str, List[str]]:
     """Extract all file references from an .rst file."""
     references = defaultdict(list)
@@ -80,7 +80,7 @@ def extract_references(
 
 
 def find_files_referencing(
-    target_file: str, all_files: List[str], context_path: str = None
+    target_file: str, all_files: List[str], context_path: Optional[str] = None
 ) -> List[Tuple[str, str]]:
     """Find all files that reference the target file."""
     referencing_files = []
@@ -173,7 +173,7 @@ def move_rst_file(
     destination: str,
     update_references: bool = True,
     dry_run: bool = False,
-    context_path: str = None,
+    context_path: Optional[str] = None,
 ) -> None:
     """Move an RST file and optionally update all references to it."""
     source_path = Path(source).resolve()

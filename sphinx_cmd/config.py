@@ -28,7 +28,7 @@ def get_config_path() -> Optional[Path]:
     return None
 
 
-def find_sphinx_conf(start_path: Union[str, Path] = None) -> Optional[Path]:
+def find_sphinx_conf(start_path: Optional[Union[str, Path]] = None) -> Optional[Path]:
     """
     Find the nearest conf.py file by traversing up from the starting path.
 
@@ -78,18 +78,18 @@ def load_config(cli_directives=None, context_path=None) -> Dict:
     config = DEFAULT_CONFIG.copy()
 
     # Add docs context information
-    config["sphinx_context"] = None
+    config["sphinx_context"] = []
 
     # Try to find Sphinx conf.py if context_path is provided or automatically
     if context_path:
         sphinx_conf = find_sphinx_conf(context_path)
         if sphinx_conf:
-            config["sphinx_context"] = sphinx_conf.parent
+            config["sphinx_context"] = [str(sphinx_conf.parent)]
     else:
         # Auto-detect from current directory
         sphinx_conf = find_sphinx_conf()
         if sphinx_conf:
-            config["sphinx_context"] = sphinx_conf.parent
+            config["sphinx_context"] = [str(sphinx_conf.parent)]
 
     config_path = get_config_path()
     if config_path:
@@ -144,7 +144,7 @@ def get_directive_patterns(
     return patterns
 
 
-def get_sphinx_context(cli_context=None) -> Optional[Path]:
+def get_sphinx_context(cli_context: Optional[str] = None) -> Optional[Path]:
     """
     Get the Sphinx documentation context directory.
 
