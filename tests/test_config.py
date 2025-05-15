@@ -71,3 +71,39 @@ directives = ["drawio-figure"]
             match = patterns["drawio-figure"].findall(test_string)
             assert len(match) == 1
             assert match[0] == "path/to/diagram.drawio"
+
+
+def test_cli_directives():
+    """Test that CLI directives are properly merged with config directives."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        config_path = Path(tmpdir) / ".sphinx-cmd.toml"
+
+        # Create a custom config file with some directives
+        toml_content = """
+directives = ["drawio-figure"]
+"""
+        with open(config_path, "wb") as f:
+            f.write(toml_content.encode())
+
+        with patch("sphinx_cmd.config.get_config_path", return_value=config_path):
+            # Add CLI directives
+            cli_directives = ["drawio-image", "custom-directive"]
+            patterns = get_directive_patterns(cli_directives)
+
+            # Default patterns should be included
+            assert "image" in patterns
+            assert "figure" in patterns
+            assert "include" in patterns
+
+            # Config file directives should be included
+            assert "drawio-figure" in patterns
+
+            # CLI directives should be included
+            assert "drawio-image" in patterns
+            assert "custom-directive" in patterns
+
+            # Test a CLI directive pattern works
+            test_string = ".. custom-directive:: path/to/custom.file"
+            match = patterns["custom-directive"].findall(test_string)
+            assert len(match) == 1
+            assert match[0] == "path/to/custom.file"
