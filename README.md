@@ -102,6 +102,7 @@ pytest
 
 # Run linters
 black sphinx_cmd tests
+isort sphinx_cmd tests
 flake8 sphinx_cmd tests
 mypy sphinx_cmd
 
@@ -111,7 +112,7 @@ sphinx-cmd rm --help
 sphinx-cmd mv --help
 ```
 
-## Adding New Commands
+### Adding New Commands
 
 The architecture is designed to make adding new commands easy:
 
@@ -119,6 +120,7 @@ The architecture is designed to make adding new commands easy:
 2. Implement an `execute(args)` function in your new file
 3. Import the command in `sphinx_cmd/cli.py`
 4. Add a new subparser for your command in `create_parser()`
+5. Create new tests (e.g., `tests/test_new_command.py`)
 
 ## License
 
