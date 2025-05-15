@@ -16,11 +16,7 @@ else:
 
 # Default configuration with built-in directives
 DEFAULT_CONFIG = {
-    "directives": {
-        "image": r"^\s*\.\.\s+image::\s+(.+)$",
-        "figure": r"^\s*\.\.\s+figure::\s+(.+)$",
-        "include": r"^\s*\.\.\s+include::\s+(.+)$",
-    }
+    "directives": ["image", "figure", "include"]
 }
 
 
@@ -56,8 +52,17 @@ def load_config() -> Dict:
 
         # Merge user directives with default directives
         if "directives" in user_config:
-            for name, pattern in user_config["directives"].items():
-                config["directives"][name] = pattern
+            if isinstance(user_config["directives"], list):
+                # If user config has list of directive names, extend default list
+                config["directives"].extend([
+                    name for name in user_config["directives"]
+                    if name not in config["directives"]
+                ])
+            elif isinstance(user_config["directives"], dict):
+                # Handle legacy format for backward compatibility
+                for name in user_config["directives"]:
+                    if name not in config["directives"]:
+                        config["directives"].append(name)
 
     except Exception as e:
         print(f"Warning: Error loading config from {config_path}: {e}")
@@ -75,7 +80,9 @@ def get_directive_patterns() -> Dict[str, re.Pattern]:
     config = load_config()
     patterns = {}
 
-    for name, pattern in config["directives"].items():
+    for name in config["directives"]:
+        # Generate regex pattern from directive name
+        pattern = fr"^\s*\.\.\s+{name}::\s+(.+)$"
         patterns[name] = re.compile(pattern, re.MULTILINE)
 
     return patterns

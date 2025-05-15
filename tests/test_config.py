@@ -24,12 +24,7 @@ def test_load_custom_config():
 
         # Create a custom config file with proper TOML syntax
         toml_content = """
-[directives]
-image = "^\\\\s*\\\\.\\\\.\\\\s+image::\\\\s+(.+)$"
-figure = "^\\\\s*\\\\.\\\\.\\\\s+figure::\\\\s+(.+)$"
-include = "^\\\\s*\\\\.\\\\.\\\\s+include::\\\\s+(.+)$"
-drawio-figure = "^\\\\s*\\\\.\\\\.\\\\s+drawio-figure::\\\\s+(.+)$"
-drawio-image = "^\\\\s*\\\\.\\\\.\\\\s+drawio-image::\\\\s+(.+)$"
+directives = ["image", "figure", "include", "drawio-figure", "drawio-image"]
 """
         with open(config_path, "wb") as f:
             f.write(toml_content.encode())
@@ -55,8 +50,7 @@ def test_get_directive_patterns():
 
         # Create a custom config file with drawio directives with proper TOML syntax
         toml_content = """
-[directives]
-drawio-figure = "^\\\\s*\\\\.\\\\.\\\\s+drawio-figure::\\\\s+(.+)$"
+directives = ["drawio-figure"]
 """
         with open(config_path, "wb") as f:
             f.write(toml_content.encode())

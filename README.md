@@ -58,16 +58,14 @@ sphinx-cmd mv old-file.rst new-file.rst --no-update-refs
 
 You can add custom directives to be processed by creating a `.sphinx-cmd.toml` file in your home directory.
 
-Add your custom directives to `[directives]` with their respective regex patterns, for example:
+Add your custom directives to the `directives` list, for example:
 
 ```toml
-[directives]
-drawio-figure = "^\\s*\\.\\.\\s+drawio-figure::\\s+(.+)$"
-drawio-image = "^\\s*\\.\\.\\s+drawio-image::\\s+(.+)$"
+directives = [
+  "drawio-figure",
+  "drawio-image"
+]
 ```
-
-> [!NOTE]
-> Each regex pattern must include a capturing group `(.+)` to extract the file path.
 
 
 ## Development
