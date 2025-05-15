@@ -1,6 +1,7 @@
 import os
 import tempfile
-from unittest.mock import Mock
+from pathlib import Path
+from unittest.mock import Mock, patch
 
 from sphinx_cmd.commands.rm import (
     build_asset_index,
@@ -30,8 +31,12 @@ def test_nested_includes_extraction():
         with open(main_file, "w") as f:
             f.write("Main file\n.. include:: include1.rst\n")
 
-        # Test the transitive includes function
-        includes = get_transitive_includes(main_file)
+        # Mock os.getcwd and Path.cwd to return the temp directory
+        with patch('os.getcwd', return_value=tmpdir):
+            with patch('pathlib.Path.cwd', return_value=Path(tmpdir)):
+                with patch('sphinx_cmd.config.get_config_path', return_value=None):
+                    # Test the transitive includes function
+                    includes = get_transitive_includes(main_file)
 
         # Should have found both include files
         assert len(includes) == 2
@@ -70,13 +75,19 @@ Test Page
         assert "test.rst" in rst_files[0]
 
         # Test extracting assets
-        assets = extract_assets(rst_files[0])
+        with patch('os.getcwd', return_value=tmpdir):
+            with patch('pathlib.Path.cwd', return_value=Path(tmpdir)):
+                with patch('sphinx_cmd.config.get_config_path', return_value=None):
+                    assets = extract_assets(rst_files[0])
         assert len(assets) == 2
 
         # Test building asset index
-        asset_to_files, file_to_assets, asset_directive_map = build_asset_index(
-            rst_files
-        )
+        with patch('os.getcwd', return_value=tmpdir):
+            with patch('pathlib.Path.cwd', return_value=Path(tmpdir)):
+                with patch('sphinx_cmd.config.get_config_path', return_value=None):
+                    asset_to_files, file_to_assets, asset_directive_map = build_asset_index(
+                        rst_files
+                    )
         assert len(asset_to_files) == 2
         assert len(file_to_assets) == 1
 
@@ -85,7 +96,12 @@ Test Page
         args.path = test_dir
         args.dry_run = True
         args.directives = None
-        execute(args)
+        args.context = None
+
+        with patch('os.getcwd', return_value=tmpdir):
+            with patch('pathlib.Path.cwd', return_value=Path(tmpdir)):
+                with patch('sphinx_cmd.config.get_config_path', return_value=None):
+                    execute(args)
 
         # Verify files still exist after dry run
         assert os.path.exists(os.path.join(test_dir, "test.rst"))
@@ -129,9 +145,13 @@ def test_empty_directory_removal():
         args.path = docs_dir
         args.dry_run = False
         args.directives = None
+        args.context = None
 
         # Execute the command to remove files
-        execute(args)
+        with patch('os.getcwd', return_value=tmpdir):
+            with patch('pathlib.Path.cwd', return_value=Path(tmpdir)):
+                with patch('sphinx_cmd.config.get_config_path', return_value=None):
+                    execute(args)
 
         # Verify that the files were removed
         assert not os.path.exists(rst_path)
@@ -172,9 +192,13 @@ def test_non_empty_directory_retained():
         args.path = docs_dir
         args.dry_run = False
         args.directives = None
+        args.context = None
 
         # Execute the command to remove files
-        execute(args)
+        with patch('os.getcwd', return_value=tmpdir):
+            with patch('pathlib.Path.cwd', return_value=Path(tmpdir)):
+                with patch('sphinx_cmd.config.get_config_path', return_value=None):
+                    execute(args)
 
         # Verify that subdir was removed but nested_dir was retained
         assert not os.path.exists(nested_subdir)
@@ -202,7 +226,10 @@ Test Document
             )
 
         # Extract assets
-        assets = extract_assets(test_file)
+        with patch('os.getcwd', return_value=tmpdir):
+            with patch('pathlib.Path.cwd', return_value=Path(tmpdir)):
+                with patch('sphinx_cmd.config.get_config_path', return_value=None):
+                    assets = extract_assets(test_file)
 
         # Check we have the right number of assets
         assert len(assets) == 3
@@ -236,7 +263,10 @@ def test_get_transitive_includes():
             f.write(".. include:: first.rst\n")
 
         # Get all transitive includes from main file
-        includes = get_transitive_includes(main_file)
+        with patch('os.getcwd', return_value=tmpdir):
+            with patch('pathlib.Path.cwd', return_value=Path(tmpdir)):
+                with patch('sphinx_cmd.config.get_config_path', return_value=None):
+                    includes = get_transitive_includes(main_file)
 
         # Should find both included files
         assert len(includes) == 2
@@ -258,7 +288,10 @@ def test_circular_includes_detection():
             f.write("File 2\n\n.. include:: file1.rst\n")
 
         # Should find both includes but avoid infinite recursion
-        includes = get_transitive_includes(file1)
+        with patch('os.getcwd', return_value=tmpdir):
+            with patch('pathlib.Path.cwd', return_value=Path(tmpdir)):
+                with patch('sphinx_cmd.config.get_config_path', return_value=None):
+                    includes = get_transitive_includes(file1)
         assert len(includes) == 2  # Changed from 1 to 2
         assert file2 in includes
         assert file1 in includes  # file1 is included by file2
