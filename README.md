@@ -28,6 +28,9 @@ sphinx-cmd --dry-run COMMAND
 
 # Process additional directives beyond defaults
 sphinx-cmd --directives drawio-figure,drawio-image COMMAND
+
+# Enable verbose output with detailed processing information
+sphinx-cmd --verbose COMMAND
 ```
 
 By default, `sphinx-cmd` will automatically detect the context of your documentation project by finding the nearest `conf.py` file in the directory tree.
