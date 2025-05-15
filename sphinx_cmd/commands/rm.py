@@ -306,6 +306,15 @@ def execute(args):
 
     # Pass context to build_asset_index
     context_path = getattr(args, "context", None)
+
+    # Display context information
+    if context_path:
+        context_abs_path = os.path.abspath(context_path)
+        print(f"Context path: {context_abs_path}")
+        print(f"Safety mode: Only files within the context path will be removed")
+    else:
+        print(f"Context path not set - all unused files will be removed")
+
     asset_to_files, file_to_assets, asset_directive_map = build_asset_index(
         rst_files, cli_directives=args.directives, context_path=context_path
     )
