@@ -6,7 +6,7 @@ Configuration handling for sphinx-cmd.
 import re
 import sys
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Optional
 
 # Use the standard library tomllib if Python 3.11+, otherwise use tomli package
 if sys.version_info >= (3, 11):
@@ -24,7 +24,7 @@ DEFAULT_CONFIG = {
 }
 
 
-def get_config_path() -> Path:
+def get_config_path() -> Optional[Path]:
     """Get the path to the configuration file."""
     # Check for config in the current directory
     local_config = Path.cwd() / ".sphinx-cmd.toml"
