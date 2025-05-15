@@ -26,7 +26,8 @@ def create_parser():
     parser.add_argument(
         "--context",
         "-c",
-        help="Path to Sphinx documentation context (will auto-detect nearest conf.py by default)",
+        help="Path to Sphinx documentation context"
+        "(will auto-detect nearest conf.py by default)",
     )
 
     # Create subparsers for subcommands

@@ -5,7 +5,6 @@ from unittest.mock import patch
 from sphinx_cmd.config import (
     find_sphinx_conf,
     get_directive_patterns,
-    get_sphinx_context,
     load_config,
 )
 
