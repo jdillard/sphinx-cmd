@@ -131,7 +131,11 @@ def get_transitive_includes(
 
 
 def delete_unused_assets_and_pages(
-    asset_to_files, file_to_assets, asset_directive_map, dry_run=False, context_path=None
+    asset_to_files,
+    file_to_assets,
+    asset_directive_map,
+    dry_run=False,
+    context_path=None,
 ):
     """
     Delete files and their unique assets if not used elsewhere.
@@ -184,7 +188,10 @@ def delete_unused_assets_and_pages(
 
                         if not is_in_context:
                             if dry_run:
-                                print(f"[dry-run] Skipping {directive} (outside context): {asset}")
+                                print(
+                                    f"[dry-run] Skipping {directive} (outside context):"
+                                    f" {asset}"
+                                )
                             continue
 
                         if dry_run:
@@ -211,7 +218,10 @@ def delete_unused_assets_and_pages(
 
                     if not is_in_context:
                         if dry_run:
-                            print(f"[dry-run] Skipping included file (outside context): {file_to_process}")
+                            print(
+                                f"[dry-run] Skipping included file (outside context):"
+                                f" {file_to_process}"
+                            )
                         continue
 
                     if dry_run:

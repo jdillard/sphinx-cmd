@@ -367,7 +367,8 @@ def test_context_path_protection():
         with open(os.path.join(docs_dir, "conf.py"), "w") as f:
             f.write("# Sphinx configuration file")
 
-        # Create an RST file in the docs directory that references a file outside the context
+        # Create an RST file in the docs directory that references a file outside
+        # the context
         rst_content = """
 Test Page
 =========
