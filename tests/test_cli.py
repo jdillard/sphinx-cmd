@@ -48,7 +48,11 @@ def test_cli_mv_help():
 
 def test_cli_invalid_context():
     """Test CLI behavior when an invalid context path is provided."""
-    with patch.object(sys, "argv", ["sphinx-cmd", "--context", "/nonexistent/path", "rm", "some_file.rst"]):
+    with patch.object(
+        sys,
+        "argv",
+        ["sphinx-cmd", "--context", "/nonexistent/path", "rm", "some_file.rst"],
+    ):
         with patch.object(sys, "exit") as mock_exit:
             main()
             mock_exit.assert_called_once_with(1)

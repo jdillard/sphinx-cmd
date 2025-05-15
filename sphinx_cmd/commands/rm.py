@@ -52,7 +52,10 @@ def extract_assets(file_path, visited=None, cli_directives=None, context_path=No
                     if directive == "include":
                         # Recursively extract assets from included files
                         included_assets = extract_assets(
-                            asset_full_path, visited.copy(), cli_directives, context_path
+                            asset_full_path,
+                            visited.copy(),
+                            cli_directives,
+                            context_path,
                         )
                         asset_directives.update(included_assets)
 
@@ -70,7 +73,9 @@ def build_asset_index(rst_files, cli_directives=None, context_path=None):
     asset_directive_map = {}
 
     for rst in rst_files:
-        asset_directives = extract_assets(rst, cli_directives=cli_directives, context_path=context_path)
+        asset_directives = extract_assets(
+            rst, cli_directives=cli_directives, context_path=context_path
+        )
         file_to_assets[rst] = set(asset_directives.keys())
         for asset, directive in asset_directives.items():
             asset_to_files[asset].add(rst)
@@ -78,7 +83,9 @@ def build_asset_index(rst_files, cli_directives=None, context_path=None):
     return asset_to_files, file_to_assets, asset_directive_map
 
 
-def get_transitive_includes(file_path, visited=None, cli_directives=None, context_path=None):
+def get_transitive_includes(
+    file_path, visited=None, cli_directives=None, context_path=None
+):
     """Get all files included transitively from a file."""
     if visited is None:
         visited = set()
@@ -111,7 +118,10 @@ def get_transitive_includes(file_path, visited=None, cli_directives=None, contex
                     # Recursively get includes from the included file
                     includes.update(
                         get_transitive_includes(
-                            include_full_path, visited.copy(), cli_directives, context_path
+                            include_full_path,
+                            visited.copy(),
+                            cli_directives,
+                            context_path,
                         )
                     )
     except Exception as e:
@@ -241,7 +251,7 @@ def execute(args):
     rst_files = find_rst_files(args.path)
 
     # Pass context to build_asset_index
-    context_path = getattr(args, 'context', None)
+    context_path = getattr(args, "context", None)
     asset_to_files, file_to_assets, asset_directive_map = build_asset_index(
         rst_files, cli_directives=args.directives, context_path=context_path
     )

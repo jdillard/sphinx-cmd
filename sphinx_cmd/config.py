@@ -121,7 +121,9 @@ def load_config(cli_directives=None, context_path=None) -> Dict:
     return config
 
 
-def get_directive_patterns(cli_directives=None, context_path=None) -> Dict[str, re.Pattern]:
+def get_directive_patterns(
+    cli_directives=None, context_path=None
+) -> Dict[str, re.Pattern]:
     """
     Get compiled regex patterns for all directives.
 

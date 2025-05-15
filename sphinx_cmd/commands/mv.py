@@ -43,7 +43,9 @@ def find_all_rst_files(root_path: str) -> List[str]:
     return rst_files
 
 
-def extract_references(file_path: str, context_path: str = None) -> Dict[str, List[str]]:
+def extract_references(
+    file_path: str, context_path: str = None
+) -> Dict[str, List[str]]:
     """Extract all file references from an .rst file."""
     references = defaultdict(list)
 
@@ -169,8 +171,11 @@ def update_references_in_file(file_path: str, old_ref: str, new_ref: str) -> boo
 
 
 def move_rst_file(
-    source: str, destination: str, update_references: bool = True,
-    dry_run: bool = False, context_path: str = None
+    source: str,
+    destination: str,
+    update_references: bool = True,
+    dry_run: bool = False,
+    context_path: str = None,
 ) -> None:
     """Move an RST file and optionally update all references to it."""
     source_path = Path(source).resolve()
@@ -213,7 +218,9 @@ def move_rst_file(
         all_files = find_all_rst_files(str(root_dir))
 
         # Find files that reference the moved file, using context if provided
-        referencing_files = find_files_referencing(str(source_rel), all_files, context_path=context_path)
+        referencing_files = find_files_referencing(
+            str(source_rel), all_files, context_path=context_path
+        )
 
         if referencing_files:
             print(f"\nUpdating references in {len(referencing_files)} file(s):")
@@ -246,7 +253,7 @@ def execute(args):
         update_references = not update_refs
 
         # Get context path if provided
-        context_path = getattr(args, 'context', None)
+        context_path = getattr(args, "context", None)
 
         # Perform the move
         move_rst_file(
