@@ -146,6 +146,7 @@ def delete_unused_assets_and_pages(
     deleted_pages = []
     deleted_assets = []
     affected_dirs = set()
+    would_delete_something = False  # Flag to track if anything would be deleted
 
     # Track which files have been processed to avoid duplicates
     processed_files = set()
@@ -201,6 +202,7 @@ def delete_unused_assets_and_pages(
                             print(
                                 f"[dry-run] Would delete {directive}: {asset}{origin}"
                             )
+                            would_delete_something = True
                         else:
                             affected_dirs.add(os.path.dirname(asset))
                             os.remove(asset)
@@ -228,6 +230,7 @@ def delete_unused_assets_and_pages(
                         print(
                             f"[dry-run] Would delete included file: {file_to_process}"
                         )
+                        would_delete_something = True
                     else:
                         affected_dirs.add(os.path.dirname(file_to_process))
                         os.remove(file_to_process)
@@ -250,12 +253,13 @@ def delete_unused_assets_and_pages(
 
                 if dry_run:
                     print(f"[dry-run] Would delete page: {rst_file}")
+                    would_delete_something = True
                 else:
                     affected_dirs.add(os.path.dirname(rst_file))
                     os.remove(rst_file)
                     deleted_pages.append(rst_file)
 
-    return deleted_pages, deleted_assets, affected_dirs
+    return deleted_pages, deleted_assets, affected_dirs, would_delete_something
 
 
 def remove_empty_dirs(dirs, original_path, dry_run=False):
@@ -318,7 +322,7 @@ def execute(args):
     asset_to_files, file_to_assets, asset_directive_map = build_asset_index(
         rst_files, cli_directives=args.directives, context_path=context_path
     )
-    deleted_pages, deleted_assets, affected_dirs = delete_unused_assets_and_pages(
+    deleted_pages, deleted_assets, affected_dirs, would_delete_something = delete_unused_assets_and_pages(
         asset_to_files, file_to_assets, asset_directive_map, args.dry_run, context_path
     )
 
@@ -326,7 +330,12 @@ def execute(args):
     if affected_dirs:
         deleted_dirs = remove_empty_dirs(affected_dirs, original_path, args.dry_run)
 
-    if not args.dry_run:
+    if args.dry_run:
+        # In dry-run mode, show a summary of what would be deleted
+        if not would_delete_something:
+            print("\n[dry-run] No unused files found, nothing would be deleted.")
+    else:
+        # Not in dry-run mode, report what was actually deleted
         print(f"\nDeleted {len(deleted_assets)} unused asset(s):")
         for a in deleted_assets:
             directive = asset_directive_map.get(a, "asset")
