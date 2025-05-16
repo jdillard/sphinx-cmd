@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.4.2
+-----
+
+- Show absolute path of assets in verbose mode
+
 0.4.1
 -----
 

@@ -55,9 +55,11 @@ def extract_assets(
                     asset_full_path = os.path.normpath(
                         os.path.join(os.path.dirname(file_path), asset_path)
                     )
+                    asset_abs_path = os.path.abspath(asset_full_path)
 
                     if verbose:
                         print(f"Found {directive}: {asset_path}")
+                        print(f"  Absolute path: {asset_abs_path}")
 
                     if directive == "include":
                         if verbose:
