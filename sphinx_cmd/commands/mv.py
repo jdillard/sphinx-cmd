@@ -86,7 +86,8 @@ def extract_references(
 
             if verbose:
                 print(f"Found {ref_type} reference: {ref_path}")
-                # For references that could be image files or other assets, show absolute path
+                # For references that could be image files or other assets,
+                # show absolute path
                 if ref_type in ["image", "figure", "include"]:
                     ref_full_path = Path(file_path).parent / ref_path
                     ref_abs_path = ref_full_path.resolve()
@@ -139,7 +140,8 @@ def find_files_referencing(
                         referencing_files.append((file_path, ref_type))
                         if verbose:
                             print(f"Found reference in {file_path} ({ref_type}): {ref}")
-                            # For references that could be image files or other assets, show absolute path
+                            # For references that could be image files or other assets,
+                            # show absolute path
                             if ref_type in ["image", "figure", "include"]:
                                 ref_full_path = Path(file_path).parent / ref
                                 ref_abs_path = ref_full_path.resolve()
