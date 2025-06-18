@@ -632,6 +632,7 @@ def execute(args):
 
     # Handle toctree updates (default behavior)
     toctree_updates = 0
+    updated_toctree_files = []
     if deleted_pages or would_delete_something:
         # Get list of files to be deleted (or would be deleted in dry-run)
         files_to_remove = deleted_pages if not dry_run else []
@@ -670,6 +671,7 @@ def execute(args):
                     # Remove the toctree entries
                     if remove_toctree_entries(file_path, entries, dry_run, verbose):
                         toctree_updates += 1
+                        updated_toctree_files.append(file_path)
             else:
                 if verbose:
                     print("No toctree references found to removed files.")
@@ -686,7 +688,9 @@ def execute(args):
         if not would_delete_something:
             print("\n[dry-run] No unused files found, nothing would be deleted.")
         if toctree_updates > 0:
-            print(f"[dry-run] Would update toctree entries in {toctree_updates} file(s)")
+            print(f"[dry-run] Would update toctree entries in {toctree_updates} file(s):")
+            for file_path in updated_toctree_files:
+                print(f"  - {file_path}")
     else:
         # Not in dry-run mode, report what was actually deleted
         print(f"\nDeleted {len(deleted_assets)} unused asset(s):")
@@ -704,7 +708,9 @@ def execute(args):
                 print(f"  - {d}")
 
         if toctree_updates > 0:
-            print(f"\nUpdated toctree entries in {toctree_updates} file(s)")
+            print(f"\nUpdated toctree entries in {toctree_updates} file(s):")
+            for file_path in updated_toctree_files:
+                print(f"  - {file_path}")
 
     if verbose:
         print("Operation completed successfully")
