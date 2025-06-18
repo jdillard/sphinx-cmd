@@ -206,7 +206,10 @@ def find_toctree_references(rst_files, removed_files, verbose=False):
     toctree_references = {}
 
     if verbose:
-        print(f"Checking for toctree references to removed files in {len(rst_files)} files...")
+        print(
+            f"Checking for toctree references to removed files "
+            f"in {len(rst_files)} files..."
+        )
 
     # Convert removed files to Path objects for proper comparison
     removed_paths = {Path(f).resolve() for f in removed_files}
@@ -220,88 +223,118 @@ def find_toctree_references(rst_files, removed_files, verbose=False):
             continue
 
         try:
-            with open(rst_file, 'r', encoding='utf-8') as f:
+            with open(rst_file, "r", encoding="utf-8") as f:
                 content = f.read()
 
             # Find toctree entries
             toctree_matches = TOCTREE_PATTERN.findall(content)
             for toctree_content in toctree_matches:
                 # Extract file references from toctree
-                lines = toctree_content.split('\n')
+                lines = toctree_content.split("\n")
                 matching_entries = []
                 rst_file_path = Path(rst_file)
 
                 for line in lines:
                     line = line.strip()
-                    if line and not line.startswith(':'):  # Skip options
+                    if line and not line.startswith(":"):  # Skip options
                         ref_file = line.split()[0] if line.split() else ""
                         if ref_file:
                             ref_path = Path(ref_file)
 
-                            # Check for matches using multiple strategies to ensure accuracy
+                            # Check for matches using multiple strategies
                             is_match = False
 
-                            # Strategy 1: Try to resolve the reference relative to the toctree file
+                            # Strategy 1: Try to resolve the reference relative
+                            # to the toctree file
                             try:
-                                resolved_ref = (rst_file_path.parent / ref_path).with_suffix(".rst").resolve()
+                                resolved_ref = (
+                                    (rst_file_path.parent / ref_path)
+                                    .with_suffix(".rst")
+                                    .resolve()
+                                )
                                 if resolved_ref in removed_paths:
                                     is_match = True
                             except:
                                 pass
 
-                            # Strategy 2: Check if reference with .rst extension matches any removed file
+                            # Strategy 2: Check if reference with .rst extension
+                            # matches any removed file
                             if not is_match:
                                 ref_with_rst = ref_path.with_suffix(".rst").resolve()
                                 if ref_with_rst in removed_paths:
                                     is_match = True
 
-                            # Strategy 3: Check direct path match (for absolute or root-relative paths)
+                            # Strategy 3: Check direct path match
+                            # (for absolute or root-relative paths)
                             if not is_match:
                                 try:
-                                    # If the reference starts with '/', treat it as relative to the directory containing the toctree file
-                                    # This matches Sphinx behavior where absolute paths in toctrees are relative to the source directory
-                                    if str(ref_path).startswith('/'):
-                                        # Remove leading slash and resolve relative to the directory containing the toctree file
+                                    # If the reference starts with '/', treat it as
+                                    # relative to the directory containing the toctree
+                                    if str(ref_path).startswith("/"):
+                                        # Remove leading slash and resolve relative
+                                        # to the directory containing the toctree file
                                         rel_ref_path = Path(str(ref_path)[1:])
-                                        resolved_ref = (rst_file_path.parent / rel_ref_path).with_suffix(".rst").resolve()
+                                        resolved_ref = (
+                                            (rst_file_path.parent / rel_ref_path)
+                                            .with_suffix(".rst")
+                                            .resolve()
+                                        )
                                         if resolved_ref in removed_paths:
                                             is_match = True
-                                        # Also check without adding .rst extension in case it's already there
-                                        resolved_ref_no_ext = (rst_file_path.parent / rel_ref_path).resolve()
+                                        # Also check without adding .rst extension
+                                        # in case it's already there
+                                        resolved_ref_no_ext = (
+                                            rst_file_path.parent / rel_ref_path
+                                        ).resolve()
                                         if resolved_ref_no_ext in removed_paths:
                                             is_match = True
                                     else:
                                         # Regular path resolution for non-absolute paths
-                                        if ref_path.resolve() in removed_paths or Path(str(ref_path) + ".rst").resolve() in removed_paths:
+                                        if (
+                                            ref_path.resolve() in removed_paths
+                                            or Path(str(ref_path) + ".rst").resolve()
+                                            in removed_paths
+                                        ):
                                             is_match = True
                                 except:
                                     pass
 
-                            # Strategy 4: Only fall back to stem matching if the previous strategies failed to resolve paths
-                            # This should only happen when files don't exist or paths are broken
-                            # We need to be very careful here to avoid false matches
+                            # Strategy 4: Only fall back to stem matching if the
+                            # previous strategies failed to resolve paths
+                            # This should only happen when files don't exist
+                            # or paths are broken
                             if not is_match and ref_path.stem in removed_stems:
-                                # Only use stem matching if we couldn't resolve the path in previous strategies
-                                # Check if the reference file actually exists at the resolved location
+                                # Only use stem matching if we couldn't resolve the path
+                                # in previous strategies. Check if the reference file
+                                # actually exists at the resolved location
                                 try:
-                                    expected_location = (rst_file_path.parent / ref_path).with_suffix(".rst")
+                                    expected_location = (
+                                        rst_file_path.parent / ref_path
+                                    ).with_suffix(".rst")
                                     if not expected_location.exists():
-                                        # File doesn't exist where it should, so stem matching might be appropriate
-                                        # But we still need to be careful about false positives
+                                        # File doesn't exist where it should, so stem
+                                        # matching might be appropriate
                                         for removed_path in removed_paths:
-                                            if (ref_path.stem == removed_path.stem and
-                                                len(ref_path.parts) == 1 and  # Only simple filename references
-                                                str(ref_path) == removed_path.stem):  # Exact stem match only
+                                            if (
+                                                ref_path.stem == removed_path.stem
+                                                and len(ref_path.parts)
+                                                == 1  # Only simple filename references
+                                                and str(ref_path) == removed_path.stem
+                                            ):  # Exact stem match only
                                                 is_match = True
                                                 break
                                 except:
-                                    # If we can't even check if the file exists, skip stem matching entirely
+                                    # If we can't even check if the file exists,
+                                    # skip stem matching entirely
                                     pass
 
                             if is_match:
                                 matching_entries.append(ref_file)
                                 if verbose:
-                                    print(f"Found toctree reference to '{ref_file}' in {rst_file}")
+                                    print(
+                                        f"Found toctree reference to "
+                                        f"'{ref_file}' in {rst_file}"
+                                    )
 
                 if matching_entries:
                     if rst_file not in toctree_references:
@@ -320,7 +353,7 @@ def remove_toctree_entries(file_path, entries_to_remove, dry_run=False, verbose=
         return False
 
     try:
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with open(file_path, "r", encoding="utf-8") as f:
             content = f.read()
 
         original_content = content
@@ -328,12 +361,12 @@ def remove_toctree_entries(file_path, entries_to_remove, dry_run=False, verbose=
         # Process each toctree directive
         def replace_toctree(match):
             toctree_content = match.group(1)
-            lines = toctree_content.split('\n')
+            lines = toctree_content.split("\n")
             new_lines = []
 
             for line in lines:
                 stripped = line.strip()
-                if stripped and not stripped.startswith(':'):  # Skip options
+                if stripped and not stripped.startswith(":"):  # Skip options
                     ref_file = stripped.split()[0] if stripped.split() else ""
                     if ref_file not in entries_to_remove:
                         new_lines.append(line)
@@ -342,7 +375,7 @@ def remove_toctree_entries(file_path, entries_to_remove, dry_run=False, verbose=
                 else:
                     new_lines.append(line)
 
-            return ".. toctree::" + '\n'.join(new_lines)
+            return ".. toctree::" + "\n".join(new_lines)
 
         new_content = TOCTREE_PATTERN.sub(replace_toctree, content)
 
@@ -350,7 +383,7 @@ def remove_toctree_entries(file_path, entries_to_remove, dry_run=False, verbose=
             if dry_run:
                 print(f"[dry-run] Would update toctree entries in: {file_path}")
             else:
-                with open(file_path, 'w', encoding='utf-8') as f:
+                with open(file_path, "w", encoding="utf-8") as f:
                     f.write(new_content)
                 if verbose:
                     print(f"Updated toctree entries in: {file_path}")
@@ -642,7 +675,9 @@ def execute(args):
             files_to_remove = []
             for rst_file, assets in file_to_assets.items():
                 unused_assets = [a for a in assets if len(asset_to_files[a]) == 1]
-                if len(unused_assets) == len(assets):  # All assets are unique to this file
+                if len(unused_assets) == len(
+                    assets
+                ):  # All assets are unique to this file
                     # Check context constraints like in delete_unused_assets_and_pages
                     is_in_context = True
                     if context_path:
@@ -654,16 +689,23 @@ def execute(args):
 
         if files_to_remove:
             if verbose:
-                print(f"Checking for toctree references to {len(files_to_remove)} removed files...")
+                print(
+                    f"Checking for toctree references to "
+                    f"{len(files_to_remove)} removed files..."
+                )
 
             # Find all RST files that might contain toctrees
             all_rst_files = find_rst_files(context_path if context_path else ".")
 
             # Find toctree references to files being removed
-            toctree_references = find_toctree_references(all_rst_files, files_to_remove, verbose)
+            toctree_references = find_toctree_references(
+                all_rst_files, files_to_remove, verbose
+            )
 
             if toctree_references:
-                print(f"\nFound toctree references in {len(toctree_references)} file(s):")
+                print(
+                    f"\nFound toctree references in {len(toctree_references)} file(s):"
+                )
 
                 for file_path, entries in toctree_references.items():
                     print(f"  - {file_path}: {', '.join(entries)}")
@@ -688,7 +730,9 @@ def execute(args):
         if not would_delete_something:
             print("\n[dry-run] No unused files found, nothing would be deleted.")
         if toctree_updates > 0:
-            print(f"[dry-run] Would update toctree entries in {toctree_updates} file(s):")
+            print(
+                f"[dry-run] Would update toctree entries in {toctree_updates} file(s):"
+            )
             for file_path in updated_toctree_files:
                 print(f"  - {file_path}")
     else:
