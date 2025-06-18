@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.4.3
+-----
+
+- Fix relative path issue with includes
+
 0.4.2
 -----
 
