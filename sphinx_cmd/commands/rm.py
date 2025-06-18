@@ -209,7 +209,7 @@ def find_toctree_references(rst_files, removed_files, verbose=False):
         print(f"Checking for toctree references to removed files in {len(rst_files)} files...")
 
     # Convert removed files to Path objects for proper comparison
-    removed_paths = {Path(f) for f in removed_files}
+    removed_paths = {Path(f).resolve() for f in removed_files}
     removed_stems = {Path(f).stem for f in removed_files}
 
     for rst_file in rst_files:
@@ -243,7 +243,7 @@ def find_toctree_references(rst_files, removed_files, verbose=False):
 
                             # Strategy 1: Try to resolve the reference relative to the toctree file
                             try:
-                                resolved_ref = (rst_file_path.parent / ref_path).with_suffix(".rst")
+                                resolved_ref = (rst_file_path.parent / ref_path).with_suffix(".rst").resolve()
                                 if resolved_ref in removed_paths:
                                     is_match = True
                             except:
@@ -251,25 +251,38 @@ def find_toctree_references(rst_files, removed_files, verbose=False):
 
                             # Strategy 2: Check if reference with .rst extension matches any removed file
                             if not is_match:
-                                ref_with_rst = ref_path.with_suffix(".rst")
+                                ref_with_rst = ref_path.with_suffix(".rst").resolve()
                                 if ref_with_rst in removed_paths:
                                     is_match = True
 
                             # Strategy 3: Check direct path match (for absolute or root-relative paths)
                             if not is_match:
-                                if ref_path in removed_paths or Path(str(ref_path) + ".rst") in removed_paths:
-                                    is_match = True
-
-                            # Strategy 4: Only fall back to stem matching if we can't resolve the path properly
-                            # and ensure the reference could plausibly point to one of the removed files
-                            if not is_match and ref_path.stem in removed_stems:
-                                # Additional check: ensure there's a reasonable path relationship
-                                for removed_path in removed_paths:
-                                    if (ref_path.stem == removed_path.stem and
-                                        (len(ref_path.parts) == 1 or  # Simple filename reference
-                                         str(ref_path).replace('/', os.sep) in str(removed_path))):  # Path contains reference
+                                try:
+                                    if ref_path.resolve() in removed_paths or Path(str(ref_path) + ".rst").resolve() in removed_paths:
                                         is_match = True
-                                        break
+                                except:
+                                    pass
+
+                            # Strategy 4: Only fall back to stem matching if the previous strategies failed to resolve paths
+                            # This should only happen when files don't exist or paths are broken
+                            # We need to be very careful here to avoid false matches
+                            if not is_match and ref_path.stem in removed_stems:
+                                # Only use stem matching if we couldn't resolve the path in previous strategies
+                                # Check if the reference file actually exists at the resolved location
+                                try:
+                                    expected_location = (rst_file_path.parent / ref_path).with_suffix(".rst")
+                                    if not expected_location.exists():
+                                        # File doesn't exist where it should, so stem matching might be appropriate
+                                        # But we still need to be careful about false positives
+                                        for removed_path in removed_paths:
+                                            if (ref_path.stem == removed_path.stem and
+                                                len(ref_path.parts) == 1 and  # Only simple filename references
+                                                str(ref_path) == removed_path.stem):  # Exact stem match only
+                                                is_match = True
+                                                break
+                                except:
+                                    # If we can't even check if the file exists, skip stem matching entirely
+                                    pass
 
                             if is_match:
                                 matching_entries.append(ref_file)
