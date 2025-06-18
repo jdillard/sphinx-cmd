@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.5.0
+-----
+
+- Remove deleted pages from toctrees
+
 0.4.3
 -----
 
