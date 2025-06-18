@@ -6,6 +6,7 @@ Command to delete unused .rst files and their unique assets.
 import os
 import re
 from collections import defaultdict
+from pathlib import Path
 
 from sphinx_cmd.config import get_directive_patterns
 
@@ -207,8 +208,9 @@ def find_toctree_references(rst_files, removed_files, verbose=False):
     if verbose:
         print(f"Checking for toctree references to removed files in {len(rst_files)} files...")
 
-    # Get base names of removed files for matching
-    removed_stems = {os.path.splitext(os.path.basename(f))[0] for f in removed_files}
+    # Convert removed files to Path objects for proper comparison
+    removed_paths = {Path(f) for f in removed_files}
+    removed_stems = {Path(f).stem for f in removed_files}
 
     for rst_file in rst_files:
         if rst_file in removed_files:
@@ -227,16 +229,52 @@ def find_toctree_references(rst_files, removed_files, verbose=False):
                 # Extract file references from toctree
                 lines = toctree_content.split('\n')
                 matching_entries = []
+                rst_file_path = Path(rst_file)
 
                 for line in lines:
                     line = line.strip()
                     if line and not line.startswith(':'):  # Skip options
-                        # Handle both relative and absolute paths
                         ref_file = line.split()[0] if line.split() else ""
-                        if ref_file and ref_file in removed_stems:
-                            matching_entries.append(ref_file)
-                            if verbose:
-                                print(f"Found toctree reference to '{ref_file}' in {rst_file}")
+                        if ref_file:
+                            ref_path = Path(ref_file)
+
+                            # Check for matches using multiple strategies to ensure accuracy
+                            is_match = False
+
+                            # Strategy 1: Try to resolve the reference relative to the toctree file
+                            try:
+                                resolved_ref = (rst_file_path.parent / ref_path).with_suffix(".rst")
+                                if resolved_ref in removed_paths:
+                                    is_match = True
+                            except:
+                                pass
+
+                            # Strategy 2: Check if reference with .rst extension matches any removed file
+                            if not is_match:
+                                ref_with_rst = ref_path.with_suffix(".rst")
+                                if ref_with_rst in removed_paths:
+                                    is_match = True
+
+                            # Strategy 3: Check direct path match (for absolute or root-relative paths)
+                            if not is_match:
+                                if ref_path in removed_paths or Path(str(ref_path) + ".rst") in removed_paths:
+                                    is_match = True
+
+                            # Strategy 4: Only fall back to stem matching if we can't resolve the path properly
+                            # and ensure the reference could plausibly point to one of the removed files
+                            if not is_match and ref_path.stem in removed_stems:
+                                # Additional check: ensure there's a reasonable path relationship
+                                for removed_path in removed_paths:
+                                    if (ref_path.stem == removed_path.stem and
+                                        (len(ref_path.parts) == 1 or  # Simple filename reference
+                                         str(ref_path).replace('/', os.sep) in str(removed_path))):  # Path contains reference
+                                        is_match = True
+                                        break
+
+                            if is_match:
+                                matching_entries.append(ref_file)
+                                if verbose:
+                                    print(f"Found toctree reference to '{ref_file}' in {rst_file}")
 
                 if matching_entries:
                     if rst_file not in toctree_references:
