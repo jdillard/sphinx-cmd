@@ -254,7 +254,7 @@ def find_toctree_references(rst_files, removed_files, verbose=False):
                                 )
                                 if resolved_ref in removed_paths:
                                     is_match = True
-                            except:
+                            except Exception:
                                 pass
 
                             # Strategy 2: Check if reference with .rst extension
@@ -296,7 +296,7 @@ def find_toctree_references(rst_files, removed_files, verbose=False):
                                             in removed_paths
                                         ):
                                             is_match = True
-                                except:
+                                except Exception:
                                     pass
 
                             # Strategy 4: Only fall back to stem matching if the
@@ -323,7 +323,7 @@ def find_toctree_references(rst_files, removed_files, verbose=False):
                                             ):  # Exact stem match only
                                                 is_match = True
                                                 break
-                                except:
+                                except Exception:
                                     # If we can't even check if the file exists,
                                     # skip stem matching entirely
                                     pass
