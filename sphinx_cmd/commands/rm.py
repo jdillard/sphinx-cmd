@@ -258,8 +258,22 @@ def find_toctree_references(rst_files, removed_files, verbose=False):
                             # Strategy 3: Check direct path match (for absolute or root-relative paths)
                             if not is_match:
                                 try:
-                                    if ref_path.resolve() in removed_paths or Path(str(ref_path) + ".rst").resolve() in removed_paths:
-                                        is_match = True
+                                    # If the reference starts with '/', treat it as relative to the directory containing the toctree file
+                                    # This matches Sphinx behavior where absolute paths in toctrees are relative to the source directory
+                                    if str(ref_path).startswith('/'):
+                                        # Remove leading slash and resolve relative to the directory containing the toctree file
+                                        rel_ref_path = Path(str(ref_path)[1:])
+                                        resolved_ref = (rst_file_path.parent / rel_ref_path).with_suffix(".rst").resolve()
+                                        if resolved_ref in removed_paths:
+                                            is_match = True
+                                        # Also check without adding .rst extension in case it's already there
+                                        resolved_ref_no_ext = (rst_file_path.parent / rel_ref_path).resolve()
+                                        if resolved_ref_no_ext in removed_paths:
+                                            is_match = True
+                                    else:
+                                        # Regular path resolution for non-absolute paths
+                                        if ref_path.resolve() in removed_paths or Path(str(ref_path) + ".rst").resolve() in removed_paths:
+                                            is_match = True
                                 except:
                                     pass
 
