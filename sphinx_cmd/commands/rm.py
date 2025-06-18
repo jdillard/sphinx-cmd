@@ -22,11 +22,20 @@ def find_rst_files(path):
 
 
 def extract_assets(
-    file_path, visited=None, cli_directives=None, context_path=None, verbose=False
+    file_path,
+    visited=None,
+    cli_directives=None,
+    context_path=None,
+    verbose=False,
+    base_dir=None,
 ):
     """Extract asset references from an .rst file, recursively parsing includes."""
     if visited is None:
         visited = set()
+
+    # Use the directory of the original file as base for relative path resolution
+    if base_dir is None:
+        base_dir = os.path.dirname(file_path)
 
     # Avoid circular includes
     abs_path = os.path.abspath(file_path)
@@ -52,9 +61,16 @@ def extract_assets(
             for directive, pattern in directive_patterns.items():
                 for match in pattern.findall(content):
                     asset_path = match.strip()
-                    asset_full_path = os.path.normpath(
-                        os.path.join(os.path.dirname(file_path), asset_path)
-                    )
+                    if directive == "include":
+                        # Include paths are resolved relative to the current file
+                        asset_full_path = os.path.normpath(
+                            os.path.join(os.path.dirname(file_path), asset_path)
+                        )
+                    else:
+                        # Non-include assets are resolved relative to the base directory
+                        asset_full_path = os.path.normpath(
+                            os.path.join(base_dir, asset_path)
+                        )
                     asset_abs_path = os.path.abspath(asset_full_path)
 
                     if verbose:
@@ -64,13 +80,15 @@ def extract_assets(
                     if directive == "include":
                         if verbose:
                             print(f"Parsing include: {asset_full_path}")
-                        # Recursively extract assets from included files
+                        # Recursively extract assets from included files,
+                        # preserving base_dir
                         included_assets = extract_assets(
                             asset_full_path,
-                            visited.copy(),
+                            visited,
                             cli_directives,
                             context_path,
                             verbose,
+                            base_dir,
                         )
                         asset_directives.update(included_assets)
 
@@ -109,11 +127,20 @@ def build_asset_index(rst_files, cli_directives=None, context_path=None, verbose
 
 
 def get_transitive_includes(
-    file_path, visited=None, cli_directives=None, context_path=None, verbose=False
+    file_path,
+    visited=None,
+    cli_directives=None,
+    context_path=None,
+    verbose=False,
+    base_dir=None,
 ):
     """Get all files included transitively from a file."""
     if visited is None:
         visited = set()
+
+    # Use the directory of the original file as base for relative path resolution
+    if base_dir is None:
+        base_dir = os.path.dirname(file_path)
 
     # Avoid circular includes
     abs_path = os.path.abspath(file_path)
@@ -148,14 +175,16 @@ def get_transitive_includes(
                     if verbose:
                         print(f"Found include: {include_path}")
 
-                    # Recursively get includes from the included file
+                    # Recursively get includes from the included file,
+                    # preserving base_dir
                     includes.update(
                         get_transitive_includes(
                             include_full_path,
-                            visited.copy(),
+                            visited,
                             cli_directives,
                             context_path,
                             verbose,
+                            base_dir,
                         )
                     )
     except Exception as e:
